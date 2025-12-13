@@ -4,7 +4,7 @@
 AI-Powered Smart Campus Assistant is an intelligent digital assistant designed to enhance the student experience at Zewail University. It combines multiple AI technologies to provide personalized academic guidance, policy information, indoor navigation, and risk prediction in a unified platform.
 
 
-#🎯 Key Features
+# 🎯 Key Features
 
 🤔 Intelligent Q&A System
 
