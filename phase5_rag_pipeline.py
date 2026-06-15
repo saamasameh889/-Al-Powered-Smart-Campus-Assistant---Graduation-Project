@@ -37,6 +37,18 @@ COLLECTION_NAME = "zewail_campus"
 EMBED_MODEL     = "text-embedding-3-small"
 CHAT_MODEL      = "gpt-4o"
 
+_GROQ_BASE  = "https://api.groq.com/openai/v1"
+_GROQ_MODEL = "llama-3.3-70b-versatile"
+
+_KEYWORD_STOPWORDS = frozenset({
+    "what", "which", "when", "where", "who", "how", "does", "do", "is", "are",
+    "the", "a", "an", "of", "in", "at", "to", "for", "and", "or", "but", "not",
+    "can", "could", "would", "should", "will", "have", "has", "had", "been",
+    "i", "my", "me", "we", "you", "your", "this", "that", "these", "those",
+    "about", "with", "from", "into", "there", "their", "being", "want", "need",
+    "tell", "give", "show", "list", "please", "help", "know", "get", "take",
+})
+
 
 # ── Data types ─────────────────────────────────────────────────────────────────
 
@@ -126,9 +138,18 @@ class CampusRAG:
         if not api_key:
             raise ValueError("OPENAI_API_KEY not set. Create a .env file or set the env var.")
 
-        # Auto-detect OpenRouter vs OpenAI key
         _OPENROUTER_BASE = "https://openrouter.ai/api/v1"
-        if api_key.startswith("sk-or-v1-"):
+
+        if api_key.startswith("gsk_"):
+            # Groq for chat (free tier); embeddings use a separate OPENAI_EMBED_KEY if set,
+            # otherwise fall back to keyword-based retrieval automatically at query time.
+            self._oai_chat  = OpenAI(api_key=api_key, base_url=_GROQ_BASE)
+            embed_key       = os.environ.get("OPENAI_EMBED_KEY")
+            self._oai_embed = OpenAI(api_key=embed_key) if embed_key else None
+            self._oai       = self._oai_chat
+            self._chat_model = _GROQ_MODEL if chat_model == CHAT_MODEL else chat_model
+
+        elif api_key.startswith("sk-or-v1-"):
             # OpenRouter for chat; OpenAI for embeddings (OpenRouter has no embedding API)
             self._oai_chat  = OpenAI(api_key=api_key, base_url=_OPENROUTER_BASE)
             embed_key = os.environ.get("OPENAI_EMBED_KEY") or api_key
@@ -136,12 +157,14 @@ class CampusRAG:
             self._oai       = self._oai_chat          # fallback alias
             if chat_model == CHAT_MODEL:
                 self._chat_model = "openai/gpt-4o"    # OpenRouter model name
+
         else:
             self._oai       = OpenAI(api_key=api_key)
             self._oai_chat  = self._oai
             self._oai_embed = self._oai
-        self._embed_model    = embed_model
-        self._chat_model     = chat_model
+            self._chat_model = chat_model
+
+        self._embed_model = embed_model
 
         persist = str(chroma_dir or CHROMA_DIR)
         db      = chromadb.PersistentClient(path=persist)
@@ -150,9 +173,85 @@ class CampusRAG:
     # ── Retrieval ───────────────────────────────────────────────────────────────
 
     def _embed(self, text: str) -> list[float]:
+        if self._oai_embed is None:
+            raise RuntimeError("No embedding client — keyword fallback will be used.")
         return self._oai_embed.embeddings.create(
             model=self._embed_model, input=[text]
         ).data[0].embedding
+
+    def _keyword_retrieve(self, query: str, n: int) -> list[RetrievedChunk]:
+        """
+        Keyword-based retrieval used when an embedding client is unavailable.
+        Searches ChromaDB's stored document text directly (no embedding call needed).
+        Preserves the same source-diversity cap (max 2 chunks per source) as the
+        semantic path so context quality stays as consistent as possible.
+        """
+        # Course codes get highest priority as search terms
+        course_codes = [
+            f"{m.group(1)} {m.group(2)}"
+            for m in _COURSE_CODE_RE.finditer(query.upper())
+        ]
+        # Content keywords: >=4 chars, not stopwords
+        content_words = [
+            w.lower() for w in re.findall(r'\b[a-zA-Z]{4,}\b', query)
+            if w.lower() not in _KEYWORD_STOPWORDS
+        ]
+        # Deduplicate while preserving order (course codes first)
+        seen: set[str] = set()
+        search_terms: list[str] = []
+        for t in course_codes + content_words:
+            if t not in seen:
+                seen.add(t)
+                search_terms.append(t)
+
+        # Score each unique chunk by how many search terms appear in it
+        scored: dict[str, tuple[int, RetrievedChunk]] = {}
+        for term in search_terms:
+            try:
+                res = self._col.get(
+                    where_document={"$contains": term},
+                    include=["documents", "metadatas"],
+                )
+                for cid, doc, meta in zip(
+                    res.get("ids", []),
+                    res.get("documents", []),
+                    res.get("metadatas", []),
+                ):
+                    if cid in scored:
+                        hits, chunk = scored[cid]
+                        scored[cid] = (hits + 1, chunk)
+                    else:
+                        scored[cid] = (1, RetrievedChunk(
+                            chunk_id    = cid,
+                            text        = doc,
+                            source      = meta.get("source", ""),
+                            source_type = meta.get("source_type", ""),
+                            category    = meta.get("category", ""),
+                            page        = meta.get("page", ""),
+                            score       = 0.0,
+                        ))
+            except Exception:
+                continue
+
+        if not scored:
+            return []
+
+        ranked = sorted(scored.values(), key=lambda x: -x[0])
+        max_hits = ranked[0][0]
+        for hits, chunk in ranked:
+            chunk.score = round(hits / max_hits, 4)
+
+        # Same source-diversity cap as the semantic path
+        source_counts: dict[str, int] = {}
+        diverse: list[RetrievedChunk] = []
+        for _hits, chunk in ranked:
+            cnt = source_counts.get(chunk.source, 0)
+            if cnt < 2:
+                diverse.append(chunk)
+                source_counts[chunk.source] = cnt + 1
+            if len(diverse) >= n:
+                break
+        return diverse
 
     def _query_chroma(
         self,
@@ -217,13 +316,22 @@ class CampusRAG:
                 f"may use different transliterations of the same person's name — treat "
                 f"phonetically similar names as referring to the same individual.]"
             )
-        emb = self._embed(normalised)
 
-        # ── 2. Semantic search over full collection ──────────────────────────
+        # ── 2. Try semantic search; fall back to keyword search if unavailable ──
+        try:
+            emb = self._embed(normalised)
+            use_semantic = True
+        except Exception:
+            use_semantic = False
+
+        if not use_semantic:
+            return self._keyword_retrieve(normalised, top_k), query_note
+
+        # ── 3. Semantic search over full collection ──────────────────────────
         n_candidates = min(top_k * 4, self._col.count())
         candidates: list[RetrievedChunk] = self._query_chroma(emb, n_candidates)
 
-        # ── 3. Course-code anchor (guaranteed slots) ─────────────────────────
+        # ── 4. Course-code anchor (guaranteed slots) ─────────────────────────
         guaranteed: list[RetrievedChunk] = []
         guaranteed_ids: set[str] = set()
         code_match = _COURSE_CODE_RE.search(query.upper())
@@ -242,7 +350,7 @@ class CampusRAG:
             except Exception:
                 pass
 
-        # ── 4. Source-diversity filter on remaining slots ────────────────────
+        # ── 5. Source-diversity filter on remaining slots ────────────────────
         # Pre-seed source counts from guaranteed slots so fill respects them
         source_counts: dict[str, int] = {}
         for g in guaranteed:

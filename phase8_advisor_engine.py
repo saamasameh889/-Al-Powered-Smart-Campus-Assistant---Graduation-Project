@@ -653,7 +653,7 @@ CRITICAL RULES
 10. Every recommendation must include WHY it was chosen.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-OUTPUT FORMAT for planning/graduation questions
+FORMAT A — PLANNING / GRADUATION questions
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Use exactly these Markdown sections:
 
@@ -699,6 +699,35 @@ Use exactly these Markdown sections:
 
 ## Academic Notes
 Any warnings, retake policies, office contacts, etc.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FORMAT B — PREREQUISITE questions
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Answer ONLY what was asked. Be direct and concise. No semester plans.
+
+## Prerequisite Chain for [Course Name]
+List the direct prerequisites, then the full chain step-by-step with course codes and names.
+
+## What Completing [Course(s)] Unlocks
+List courses that become available, grouped by relevance to the student's major.
+Use exact course codes. Focus on the most important/relevant ones (up to 10).
+
+## Current Status
+One sentence on whether the student can register now or what they need first.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FORMAT C — RISK ASSESSMENT questions
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## Student Summary
+1–2 sentences on academic standing.
+
+## Risk Assessment
+- **GPA Risk**: LOW/MEDIUM/HIGH — specific reason
+- **Workload Risk**: LOW/MEDIUM/HIGH — specific reason
+- **Graduation Delay Risk**: LOW/MEDIUM/HIGH — specific reason
+
+## Recommended Actions
+Bullet list of specific steps to reduce identified risks.
 """
 
 
@@ -810,13 +839,36 @@ class AdvisorEngine:
             )
             graph_section = self._format_graph_section(analysis, profile)
 
+        # For prerequisite questions: also compute hypothetical eligibility using
+        # any course codes mentioned in the question (treats them as if completed).
+        if intent == "prerequisite" and self._graph.available:
+            _CODE_UPPER = re.compile(r'\b([A-Z]{2,6})\s+(\d{3,4}[A-Z]?)\b')
+            hypo_codes = [
+                f"{m.group(1)} {m.group(2)}"
+                for m in _CODE_UPPER.finditer(question.upper())
+            ]
+            if hypo_codes:
+                hypo_completed = list(profile.completed_courses) + [
+                    c for c in hypo_codes if c not in profile.failed_courses
+                ]
+                hypo_analysis = self._graph.analyze_eligibility(
+                    completed=hypo_completed,
+                    failed=profile.failed_courses,
+                    current=profile.current_courses,
+                )
+                hypo_section = self._format_graph_section(hypo_analysis, profile)
+                graph_section = (
+                    f"Current eligibility (actual completed courses):\n{graph_section}\n\n"
+                    f"Hypothetical eligibility assuming {', '.join(hypo_codes)} are completed:\n{hypo_section}"
+                )
+
         # 4. Engine 7: Graduation estimate
         grad_section = self._graduation_estimate(profile)
 
         # 5. Engine 9: Risk flags
         risk_flags = self._risk_flags(profile)
 
-        # 6. Assemble full prompt
+        # 6. Assemble full prompt — instruction varies by intent
         rag_ctx = self._format_rag_context(chunks, query_note)
         intent_label = {
             "planning":     "semester course planning",
@@ -824,6 +876,34 @@ class AdvisorEngine:
             "prerequisite": "prerequisite check",
             "risk":         "academic risk assessment",
         }.get(intent, "academic advising")
+
+        if intent == "prerequisite":
+            task_instruction = (
+                "Answer ONLY the prerequisite question the student asked. "
+                "Use FORMAT B (prerequisite format) from your instructions. "
+                "Do NOT generate semester plans or the full planning template. "
+                "Be specific with course codes. Keep response concise."
+            )
+        elif intent == "risk":
+            task_instruction = (
+                "Assess academic risk ONLY. "
+                "Use FORMAT C (risk assessment format) from your instructions. "
+                "Do NOT generate semester plans."
+            )
+        elif intent == "graduation":
+            task_instruction = (
+                "Focus on graduation timeline. Use FORMAT A but keep Recommended Plans "
+                "to ONE concise table (the most realistic plan). "
+                "Emphasise the graduation estimate, remaining credits, and what the student "
+                "must complete to finish on time."
+            )
+        else:  # planning
+            task_instruction = (
+                "Generate a comprehensive academic advisory response "
+                "using FORMAT A (planning format) from your instructions exactly. "
+                "Ground every recommendation in the prerequisite analysis and curriculum documents. "
+                "Be specific: use course codes, credit counts, and clear reasoning."
+            )
 
         user_message = (
             f"## Student Profile\n{profile.summary_for_prompt()}\n\n"
@@ -833,10 +913,7 @@ class AdvisorEngine:
             f"## Official Curriculum Documents\n{rag_ctx}\n\n"
             f"## Task: {intent_label}\n"
             f"Student's question: {question}\n\n"
-            "Generate a comprehensive, well-structured academic advisory response "
-            "using EXACTLY the output format specified in your instructions. "
-            "Ground every recommendation in the prerequisite analysis and curriculum documents. "
-            "Be specific: use course codes, credit counts, and clear reasoning."
+            f"{task_instruction}"
         )
 
         # 7. Call GPT with advisor system prompt
