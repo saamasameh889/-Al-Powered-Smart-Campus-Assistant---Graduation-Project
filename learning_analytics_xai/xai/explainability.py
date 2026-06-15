@@ -40,6 +40,7 @@ MODELS = HERE.parent / "models"
 
 # Human-readable feature labels (maps internal column names -> display names)
 FEATURE_LABELS = {
+    # ── Original 21 ML features ───────────────────────────────────────────────
     "avg_attendance":        "Attendance Rate",
     "avg_assignments":       "Assignment Scores",
     "avg_quizzes":           "Quiz Scores",
@@ -61,6 +62,15 @@ FEATURE_LABELS = {
     "semester_momentum":     "Learning Momentum",
     "programme_encoded":     "Programme Type",
     "school_encoded":        "School",
+    # ── Curriculum-aware features (Phase 4b) ─────────────────────────────────
+    "graduation_progress_ratio":    "Graduation Progress",
+    "expected_progress_ratio":      "Expected Progress Pace",
+    "graduation_delay_semesters":   "Curriculum Delay (semesters)",
+    "core_completion_ratio":        "Core Course Completion",
+    "prereq_completion_proxy":      "Prerequisite Completion",
+    "blocked_progress_ratio":       "Blocked Degree Progress",
+    "curriculum_alignment_proxy":   "Curriculum Alignment",
+    "curriculum_readiness_score":   "Graduation Readiness Score",
 }
 
 RISK_LABELS = {0: "Low Risk", 1: "Medium Risk", 2: "High Risk"}
@@ -318,6 +328,50 @@ class ExplainabilityEngine:
             return fig
         except Exception:
             return None
+
+    # ── Curriculum waterfall plot ─────────────────────────────────────────────
+
+    @staticmethod
+    def curriculum_waterfall_fig(
+        curriculum_shap_values: dict,
+        student_name: str = "Student",
+        predicted_gpa: float = 0.0,
+    ) -> Optional[plt.Figure]:
+        """
+        Curriculum-aware SHAP-equivalent waterfall chart.
+
+        Uses rule-based curriculum impact scores (from CurriculumEngine.get_curriculum_shap_values)
+        to create a SHAP-style visualization of curriculum factors affecting academic outcomes.
+        These are not ML-derived SHAP values but are grounded in Zewail degree requirements
+        and academic regulations.
+        """
+        if not curriculum_shap_values:
+            return None
+
+        # Sort by impact magnitude, largest at bottom (waterfall convention)
+        items = sorted(curriculum_shap_values.items(), key=lambda x: x[1])
+        names  = [n for n, _ in items]
+        values = [v for _, v in items]
+        colors = ["#27AE60" if v >= 0 else "#E74C3C" for v in values]
+        n_show = len(names)
+
+        fig, ax = plt.subplots(figsize=(10, max(5, n_show * 0.65)))
+        ax.barh(range(n_show), values, color=colors, edgecolor="white", height=0.6)
+        ax.set_yticks(range(n_show))
+        ax.set_yticklabels(names, fontsize=9)
+        ax.axvline(0, color="black", linewidth=0.8)
+        ax.set_xlabel("Curriculum Impact on Predicted GPA (estimated)", fontsize=10)
+        ax.set_title(
+            f"Curriculum XAI — {student_name}\n"
+            f"Zewail Academic Context  |  Predicted GPA: {predicted_gpa:.2f}",
+            fontsize=11, fontweight="bold",
+        )
+        pos_patch = mpatches.Patch(color="#27AE60", label="Positive curriculum factor")
+        neg_patch = mpatches.Patch(color="#E74C3C", label="Negative curriculum factor")
+        ax.legend(handles=[pos_patch, neg_patch], fontsize=9, loc="lower right")
+        ax.grid(axis="x", alpha=0.3)
+        fig.tight_layout()
+        return fig
 
     # ── PCA ───────────────────────────────────────────────────────────────────
 

@@ -29,10 +29,12 @@ _ROOT = _HERE.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from xai.explainability import get_engine, FEATURE_LABELS, RISK_LABELS, RISK_COLORS
+from xai.explainability import get_engine, FEATURE_LABELS, RISK_LABELS, RISK_COLORS, ExplainabilityEngine
 from recommendation_engine.recommender import generate_recommendations
-from what_if_analysis.what_if_engine import get_whatif_engine, simulate_curriculum_scenario
-from feature_engineering.feature_engineer import PROG_DIFFICULTY
+from what_if_analysis.what_if_engine import (
+    get_whatif_engine, simulate_curriculum_scenario, get_curriculum_preset_scenarios,
+)
+from feature_engineering.feature_engineer import PROG_DIFFICULTY, PROG_CREDITS, PROG_CORE_CREDITS
 from curriculum_intelligence.curriculum_engine import get_engine as get_curriculum_engine
 
 # ── Colour palette (matches existing purple theme) ────────────────────────────
@@ -218,6 +220,23 @@ def _profile_to_features(profile: dict) -> dict:
     prog_enc   = PROG_DIFFICULTY.get(prog, 0.55)
     school_enc = {"CS&AI": 2, "ENGR": 1, "SCI": 3, "BUS": 0}.get(SCHOOLS.get(prog, "CS&AI"), 2)
 
+    # ── Curriculum-aware features (approximate — overridden when course codes known) ──
+    total_req  = float(PROG_CREDITS.get(prog, 132))
+    core_req   = float(PROG_CORE_CREDITS.get(prog, 86))
+    cp_safe    = max(cp, 0)
+    grad_prog  = min(cp_safe / total_req, 1.0)
+    exp_prog   = min(sem / 8.0, 1.0)
+    delay_sem  = round((exp_prog - grad_prog) * 8, 2)
+    core_comp  = min(cp_safe / core_req, 1.0)
+    fail_r     = failed / max(total_courses, 1)
+    prereq_prx = float(np.clip(1.0 - fail_r, 0, 1))
+    blocked_pr = float(np.clip(failed * 6 / total_req, 0, 0.5))
+    align_prx  = float(np.clip(ccr * prereq_prx, 0, 1))
+    readiness  = float(np.clip(
+        0.40 * grad_prog + 0.25 * core_comp + 0.20 * prereq_prx + 0.15 * (1 - min(delay_sem / 8, 1)),
+        0, 1,
+    ))
+
     return {
         "avg_attendance":         att,
         "avg_assignments":        asgn,
@@ -232,7 +251,7 @@ def _profile_to_features(profile: dict) -> dict:
         "failed_courses":         failed,
         "attendance_risk_score":  round(att_risk, 4),
         "course_difficulty_index": prog_enc,
-        "failed_course_ratio":    round(failed / max(total_courses, 1), 4),
+        "failed_course_ratio":    round(fail_r, 4),
         "performance_trend":      round(trend, 2),
         "credit_completion_ratio": round(ccr, 4),
         "academic_consistency":   round(consist, 3),
@@ -241,6 +260,15 @@ def _profile_to_features(profile: dict) -> dict:
         "programme_encoded":      prog_enc,
         "school_encoded":         float(school_enc),
         "study_hours":            20.0,
+        # Curriculum features (available for display/XAI; not consumed by current models)
+        "graduation_progress_ratio":   round(grad_prog, 4),
+        "expected_progress_ratio":     round(exp_prog,  4),
+        "graduation_delay_semesters":  delay_sem,
+        "core_completion_ratio":       round(core_comp, 4),
+        "prereq_completion_proxy":     round(prereq_prx, 4),
+        "blocked_progress_ratio":      round(blocked_pr, 4),
+        "curriculum_alignment_proxy":  round(align_prx, 4),
+        "curriculum_readiness_score":  round(readiness, 4),
     }
 
 
@@ -423,6 +451,39 @@ def _trend_chart(features: dict) -> go.Figure:
         font_color="#F3EFFF",
         yaxis=dict(range=[0, 110], gridcolor="rgba(124,58,237,.15)"),
         xaxis=dict(gridcolor="rgba(0,0,0,0)"),
+    )
+    return fig
+
+
+def _curriculum_impact_chart(curriculum_shap: dict) -> Optional[go.Figure]:
+    """Plotly bar chart of curriculum factor impacts (SHAP-equivalent, in GPA units)."""
+    if not curriculum_shap:
+        return None
+    items = sorted(curriculum_shap.items(), key=lambda x: x[1])
+    names  = [n for n, _ in items]
+    values = [v for _, v in items]
+    colors = ["#27AE60" if v >= 0 else "#E74C3C" for v in values]
+    text   = [f"{'+'if v >= 0 else ''}{v:.3f}" for v in values]
+
+    fig = go.Figure(go.Bar(
+        x=values, y=names,
+        orientation="h",
+        marker_color=colors,
+        text=text,
+        textposition="outside",
+        textfont=dict(color="#F3EFFF", size=10),
+        hovertemplate="%{y}<br>Impact: %{x:+.3f} GPA<extra></extra>",
+    ))
+    fig.add_vline(x=0, line_color="rgba(255,255,255,.5)", line_width=1.5)
+    fig.update_layout(
+        height=max(260, len(names) * 38),
+        margin=dict(t=10, b=10, l=10, r=70),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(13,7,32,0.6)",
+        font_color="#F3EFFF",
+        xaxis=dict(gridcolor="rgba(124,58,237,.15)", zeroline=False,
+                   title=dict(text="Estimated GPA Impact", font=dict(size=10, color="#A78BFA"))),
+        yaxis=dict(gridcolor="rgba(0,0,0,0)"),
     )
     return fig
 
@@ -893,7 +954,19 @@ def _run_analysis():
         # Attach curriculum narratives to result (backwards-compatible field)
         result.curriculum_narratives = curriculum_narratives
 
-        # ── 3. Unified recommendations (SHAP + curriculum) ───────────────────
+        # ── 3. Curriculum SHAP-equivalent values ──────────────────────────────
+        curriculum_shap_values = curr_eng.get_curriculum_shap_values(
+            curriculum_features = curriculum_features,
+            predicted_gpa       = result.predicted_gpa,
+        )
+
+        # ── 4. Curriculum feature table for display ───────────────────────────
+        curriculum_feature_table = curr_eng.get_curriculum_feature_table(
+            curriculum_features = curriculum_features,
+            programme           = programme,
+        )
+
+        # ── 5. Unified recommendations (curriculum critical first, then SHAP) ─
         recs = generate_recommendations(
             features,
             result.predicted_gpa,
@@ -910,6 +983,8 @@ def _run_analysis():
     st.session_state.xai_graduation        = graduation_status
     st.session_state.xai_passed_codes      = passed_codes
     st.session_state.xai_failed_codes      = failed_codes
+    st.session_state.xai_curriculum_shap   = curriculum_shap_values
+    st.session_state.xai_curriculum_table  = curriculum_feature_table
 
     st.session_state.xai_messages.append((
         "ai",
@@ -1073,6 +1148,30 @@ def _render_dashboard_tab():
         </div>
         """, unsafe_allow_html=True)
 
+        # ── Curriculum impact chart ───────────────────────────────────────────
+        curr_shap = st.session_state.get("xai_curriculum_shap", {})
+        if curr_shap:
+            st.markdown("**Curriculum Factor Impact** *(estimated GPA contribution per factor)*")
+            fig_curr = _curriculum_impact_chart(curr_shap)
+            if fig_curr:
+                st.plotly_chart(fig_curr, use_container_width=True, key="curr_impact_dash")
+            st.caption(
+                "Green bars = factors supporting your academic trajectory. "
+                "Red bars = curriculum factors reducing predicted academic outcome. "
+                "Grounded in official Zewail degree requirements and regulations."
+            )
+
+        # ── Curriculum feature status table ──────────────────────────────────
+        curr_table = st.session_state.get("xai_curriculum_table", [])
+        if curr_table:
+            st.markdown("**Curriculum Intelligence Status**")
+            import pandas as pd
+            st.dataframe(
+                pd.DataFrame(curr_table),
+                use_container_width=True,
+                hide_index=True,
+            )
+
         # Blocked prerequisite chains
         blocked_entries = get_curriculum_engine().get_blocked_courses(failed_codes, profile.get("programme","CSAI"))
         if blocked_entries:
@@ -1116,7 +1215,9 @@ def _render_recommendations_tab():
     PRIO_COLOR = {1: "#E74C3C", 2: "#E67E22", 3: "#F1C40F", 4: "#27AE60"}
     PRIO_LABEL = {1: "Critical", 2: "High", 3: "Medium", 4: "Low"}
 
-    for r in recs:
+    CURRICULUM_CATEGORIES = {"Curriculum", "Prerequisites", "Graduation", "Degree Progress"}
+
+    def _rec_card(r):
         color = PRIO_COLOR.get(r.priority, "#A78BFA")
         st.markdown(f"""
         <div class="xai-rec-card" style="border-color:{color};">
@@ -1126,13 +1227,51 @@ def _render_recommendations_tab():
                 </span>
                 <span style="background:{color}22;border:1px solid {color};border-radius:12px;
                       padding:2px 10px;font-size:0.72rem;color:{color};font-weight:700;">
-                    {PRIO_LABEL[r.priority]}
+                    {PRIO_LABEL.get(r.priority, "?")}
                 </span>
             </div>
             <p style="color:#DDD6FE;margin:0 0 6px;font-size:.87rem;">{r.detail}</p>
             <p style="color:#A78BFA;margin:0;font-size:.80rem;font-style:italic;">{r.impact}</p>
         </div>
         """, unsafe_allow_html=True)
+
+    curriculum_recs = [r for r in recs if r.category in CURRICULUM_CATEGORIES]
+    academic_recs   = [r for r in recs if r.category not in CURRICULUM_CATEGORIES]
+
+    if curriculum_recs:
+        st.markdown("""
+        <div style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.3);
+                    border-radius:10px;padding:10px 16px;margin-bottom:16px;">
+            <span style="color:#C4B5FD;font-weight:700;font-size:.95rem;">
+                📋 Curriculum & Degree Progress Advisories
+            </span>
+            <span style="color:#A78BFA;font-size:.80rem;margin-left:8px;">
+                Based on official Zewail City programme requirements
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+        for r in curriculum_recs:
+            _rec_card(r)
+        if academic_recs:
+            st.divider()
+
+    if academic_recs:
+        st.markdown("""
+        <div style="background:rgba(52,211,153,.06);border:1px solid rgba(52,211,153,.25);
+                    border-radius:10px;padding:10px 16px;margin-bottom:16px;">
+            <span style="color:#6EE7B7;font-weight:700;font-size:.95rem;">
+                📊 Academic Performance Recommendations
+            </span>
+            <span style="color:#A78BFA;font-size:.80rem;margin-left:8px;">
+                Based on AI prediction model and SHAP analysis
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+        for r in academic_recs:
+            _rec_card(r)
+
+    if not curriculum_recs and not academic_recs:
+        st.info("No recommendations generated. Complete the AI Analysis Chat first.")
 
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -1333,6 +1472,86 @@ def _render_whatif_tab():
                 if new_blocked:
                     st.warning(f"Newly blocked: {', '.join(new_blocked)}")
 
+    # ── Preset curriculum scenarios ──────────────────────────────────────────────
+    st.divider()
+    st.markdown("**Smart Curriculum Scenarios** *(auto-generated from your academic profile)*")
+    st.markdown(
+        "These scenarios are automatically selected based on your failed courses, "
+        "high-impact prerequisites, and graduation pace."
+    )
+
+    if st.button("Generate Smart Scenarios", key="btn_preset_scenarios"):
+        try:
+            from what_if_analysis.what_if_engine import get_curriculum_preset_scenarios
+            with st.spinner("Generating curriculum scenarios..."):
+                preset = get_curriculum_preset_scenarios(
+                    programme     = programme,
+                    passed_codes  = passed_codes,
+                    failed_codes  = failed_codes,
+                    credits_passed= credits_passed,
+                    semester      = semester,
+                    predicted_gpa = predicted_gpa,
+                )
+            st.session_state["_preset_scenarios"] = preset
+        except Exception as e_ps:
+            st.error(f"Could not generate preset scenarios: {e_ps}")
+
+    preset_results = st.session_state.get("_preset_scenarios", [])
+    if preset_results:
+        # Group by scenario group
+        groups: dict[str, list[dict]] = {}
+        for sc in preset_results:
+            g = sc.get("group", "Other")
+            groups.setdefault(g, []).append(sc)
+
+        GROUP_COLORS = {
+            "Retake Failed":    "#27AE60",
+            "Risk: If You Fail": "#E74C3C",
+            "High-Impact Pass": "#3498DB",
+        }
+
+        for g_name, g_items in groups.items():
+            g_color = GROUP_COLORS.get(g_name, "#A78BFA")
+            st.markdown(
+                f'<div style="color:{g_color};font-weight:700;font-size:.9rem;'
+                f'margin:12px 0 6px;">▸ {g_name}</div>',
+                unsafe_allow_html=True
+            )
+            for sc in g_items:
+                label    = sc.get("label", "Scenario")
+                scenario = sc.get("scenario", {})
+                delay    = scenario.get("new_graduation_delay", 0)
+                grad_ok  = scenario.get("new_graduation_ok", True)
+                unblk    = scenario.get("unblocked", [])
+                blk      = scenario.get("new_blocked", [])
+                msg      = scenario.get("curriculum_message", "")
+
+                delay_txt = (
+                    f"+{delay}sem delay" if delay > 0
+                    else "No delay" if delay == 0
+                    else f"{abs(delay)}sem ahead"
+                )
+                status_color = "#27AE60" if grad_ok else "#E74C3C"
+
+                with st.expander(f"{label}  |  {delay_txt}  |  {'✅ On Track' if grad_ok else '⚠️ At Risk'}"):
+                    st.markdown(f"""
+                    <div class="xai-card" style="padding:10px 16px;">
+                        <div style="color:#DDD6FE;font-size:.87rem;">{msg}</div>
+                        <div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;">
+                            <span style="color:{status_color};font-size:.82rem;">
+                                Graduation: {'On Track' if grad_ok else 'At Risk'}
+                            </span>
+                            <span style="color:#A78BFA;font-size:.82rem;">
+                                Delay: {delay_txt}
+                            </span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    if unblk:
+                        st.success(f"Unblocks: {', '.join(unblk)}")
+                    if blk:
+                        st.warning(f"Newly blocked: {', '.join(blk)}")
+
 
 # ════════════════════════════════════════════════════════════════════════════════
 #  Tab 5: Advanced Analytics (for professors / evaluators)
@@ -1371,36 +1590,83 @@ def _render_advanced_tab():
         if result is None:
             st.info("Complete the Analysis Chat first.")
         else:
+            failed_codes = st.session_state.get("xai_failed_codes", [])
+            profile_adv  = st.session_state.get("xai_profile", {})
+            prog         = profile_adv.get("programme", "CSAI")
+
+            # ── Curriculum SHAP-equivalent waterfall chart ────────────────────
+            curr_shap_adv = st.session_state.get("xai_curriculum_shap", {})
+            if curr_shap_adv:
+                st.markdown("##### Curriculum Factor Impact (GPA contribution)")
+                try:
+                    from xai.explainability import ExplainabilityEngine
+                    pred_gpa_adv = result.predicted_gpa if result else 2.0
+                    wfall_fig = ExplainabilityEngine.curriculum_waterfall_fig(
+                        curr_shap_adv, result.student_name if result else "Student", pred_gpa_adv
+                    )
+                    if wfall_fig:
+                        buf_wf = io.BytesIO()
+                        wfall_fig.savefig(buf_wf, format="png", dpi=110, bbox_inches="tight")
+                        st.image(buf_wf.getvalue(), use_container_width=True)
+                        import matplotlib.pyplot as plt
+                        plt.close(wfall_fig)
+                except Exception as e_wf:
+                    # Fallback to Plotly chart if matplotlib waterfall fails
+                    fig_curr_adv = _curriculum_impact_chart(curr_shap_adv)
+                    if fig_curr_adv:
+                        st.plotly_chart(fig_curr_adv, use_container_width=True, key="curr_impact_adv")
+                st.caption(
+                    "Green = curriculum factors boosting your academic trajectory. "
+                    "Red = factors pulling your predicted GPA down. "
+                    "Grounded in official Zewail City degree requirements and academic regulations."
+                )
+            else:
+                st.info("Curriculum impact scores not available. Run analysis first.")
+
+            st.divider()
+
+            # ── Curriculum feature status table ───────────────────────────────
+            curr_table_adv = st.session_state.get("xai_curriculum_table", [])
+            if curr_table_adv:
+                st.markdown("##### Curriculum Status Indicators")
+                st.dataframe(
+                    pd.DataFrame(curr_table_adv),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+                st.divider()
+
+            # ── Curriculum narratives ─────────────────────────────────────────
             narratives = getattr(result, "curriculum_narratives", [])
             if narratives:
+                st.markdown("##### Detailed Curriculum Analysis")
                 for n in narratives:
                     st.markdown(f"""
                     <div class="xai-card" style="padding:10px 16px;margin-bottom:8px;">
                         <span style="color:#DDD6FE;font-size:.9rem;">{n}</span>
                     </div>""", unsafe_allow_html=True)
-            else:
-                st.info("No curriculum data matched for your courses. "
-                        "Make sure course codes or names are entered accurately.")
 
-            # Blocked courses detail table
-            failed_codes = st.session_state.get("xai_failed_codes", [])
-            profile      = st.session_state.get("xai_profile", {})
-            prog         = profile.get("programme", "CSAI")
+            # ── Blocked courses detail table ──────────────────────────────────
             if failed_codes:
                 blocked = get_curriculum_engine().get_blocked_courses(failed_codes, prog)
                 if blocked:
-                    st.markdown("**Prerequisite Chain Impact Table**")
+                    st.divider()
+                    st.markdown("##### Prerequisite Chain Impact Table")
                     rows = []
                     for b in blocked:
                         rows.append({
-                            "Failed Course": b["failed_course"],
-                            "Title":         b["failed_title"],
-                            "Direct Blocks": len(b["direct_blocked"]),
-                            "Total Blocked": len(b["all_blocked"]),
+                            "Failed Course":  b["failed_course"],
+                            "Title":          b["failed_title"],
+                            "Direct Blocks":  len(b["direct_blocked"]),
+                            "Total Blocked":  len(b["all_blocked"]),
                             "Blocked Credits": b["blocked_credit_hours"],
-                            "Chain Depth":   b["chain_depth"],
+                            "Chain Depth":    b["chain_depth"],
                         })
                     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                    st.caption(
+                        "Chain Depth = how many prerequisite levels deep the blockage propagates. "
+                        "High depth means retaking this course unlocks a long chain of future courses."
+                    )
 
     with subtabs[2]:
         st.markdown("**Global SHAP Summary — All Students**")

@@ -51,6 +51,18 @@ PROG_CREDITS = {
     "BUS":  114, "FIN":  114,
 }
 
+# Programme core credit requirements (from degree_requirements.json)
+PROG_CORE_CREDITS = {
+    "CSAI": 86, "DSAI": 86, "SWE":  86,
+    "MECH": 90, "EEE":  90, "CIV":  90,
+    "MATH": 80, "PHYS": 80, "CHEM": 80,
+    "BUS":  74, "FIN":  74,
+
+}
+
+# Typical semesters for a full degree at Zewail City
+_TOTAL_SEMESTERS = 8
+
 
 def attendance_risk_score(att: pd.Series) -> pd.Series:
     """Score from 0-1 where higher = more risk from poor attendance.
@@ -116,6 +128,92 @@ def semester_momentum_score(df_raw: pd.DataFrame, student_ids: pd.Series) -> pd.
     momentum = late - early    # positive if improving
     result = student_ids.map(momentum).fillna(0)
     return result
+
+
+def compute_curriculum_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Compute curriculum-aware features from aggregate student data.
+    These approximate the exact values the CurriculumEngine computes from
+    course codes, using only the summary-level data available at training time.
+
+    Adds 8 new columns to a copy of the input DataFrame:
+      graduation_progress_ratio       — credits_passed / total_required
+      expected_progress_ratio         — semester / total_semesters
+      graduation_delay_semesters      — how many semesters behind expected pace
+      core_completion_ratio           — credits_passed / core_required (proxy)
+      curriculum_readiness_score      — composite readiness metric
+      curriculum_alignment_proxy      — penalizes low credit completion
+      blocked_progress_ratio          — estimated proportion of degree blocked by failures
+      prereq_completion_proxy         — 1 - failed_course_ratio (proxy)
+    """
+    df = df.copy()
+
+    # Map programme to total required credits (with fallback)
+    total_req = df["programme"].map(PROG_CREDITS).fillna(132).astype(float)
+    core_req  = df["programme"].map(PROG_CORE_CREDITS).fillna(86).astype(float)
+
+    credits_passed   = df["credits_passed"].clip(lower=0)
+    credits_reg      = df["credits_registered"].clip(lower=1)
+    failed_courses   = df["failed_courses"].clip(lower=0)
+    semester         = df["semester"].clip(lower=1, upper=_TOTAL_SEMESTERS)
+
+    # 1. Graduation progress ratio (actual vs required)
+    df["graduation_progress_ratio"] = (credits_passed / total_req).clip(0, 1).round(4)
+
+    # 2. Expected progress ratio (where you SHOULD be based on semester)
+    df["expected_progress_ratio"] = (semester / _TOTAL_SEMESTERS).clip(0, 1).round(4)
+
+    # 3. Graduation delay in semesters (positive = behind schedule)
+    delay_ratio = df["expected_progress_ratio"] - df["graduation_progress_ratio"]
+    df["graduation_delay_semesters"] = (delay_ratio * _TOTAL_SEMESTERS).round(2)
+
+    # 4. Core course completion ratio (proxy: credits_passed / core_credits_required)
+    df["core_completion_ratio"] = (credits_passed / core_req).clip(0, 1).round(4)
+
+    # 5. Prerequisite completion proxy (inverse of failure rate, bounded)
+    # Students with high failure rates are likely missing prerequisites
+    total_courses  = (credits_reg / 3).clip(lower=1)
+    fail_ratio     = (failed_courses / total_courses).clip(0, 1)
+    df["prereq_completion_proxy"] = (1.0 - fail_ratio).round(4)
+
+    # 6. Blocked progress ratio (estimated credits blocked by failures)
+    # Conservatively: each failed course blocks ~6 credits (direct + one-level dependent)
+    avg_blocked_per_failure = 6.0
+    df["blocked_progress_ratio"] = (
+        (failed_courses * avg_blocked_per_failure) / total_req
+    ).clip(0, 0.5).round(4)
+
+    # 7. Curriculum alignment proxy
+    # Higher credit completion with low failures → better alignment
+    credit_completion = (credits_passed / credits_reg).clip(0, 1)
+    df["curriculum_alignment_proxy"] = (
+        credit_completion * df["prereq_completion_proxy"]
+    ).round(4)
+
+    # 8. Curriculum readiness score (composite, 0–1)
+    # Weights: graduation progress (40%), core completion (25%),
+    #          prereq proxy (20%), pace (15%)
+    pace_score = (1.0 - delay_ratio.clip(0, 1))
+    df["curriculum_readiness_score"] = (
+        0.40 * df["graduation_progress_ratio"]
+        + 0.25 * df["core_completion_ratio"]
+        + 0.20 * df["prereq_completion_proxy"]
+        + 0.15 * pace_score
+    ).clip(0, 1).round(4)
+
+    return df
+
+
+CURRICULUM_FEATURE_COLS = [
+    "graduation_progress_ratio",
+    "expected_progress_ratio",
+    "graduation_delay_semesters",
+    "core_completion_ratio",
+    "prereq_completion_proxy",
+    "blocked_progress_ratio",
+    "curriculum_alignment_proxy",
+    "curriculum_readiness_score",
+]
 
 
 def encode_programme(prog: pd.Series) -> tuple[pd.Series, dict]:
@@ -189,6 +287,13 @@ def build_features(df_sum: pd.DataFrame, df_raw: pd.DataFrame) -> pd.DataFrame:
     # 10. School encoded
     school_enc, school_map = encode_school(df["school"])
     df_feat["school_encoded"] = school_enc
+
+    # ── Curriculum-aware features (Phase 4b — new) ────────────────────────────
+    if "programme" in df.columns:
+        df_curr = compute_curriculum_features(df)
+        for col in CURRICULUM_FEATURE_COLS:
+            if col in df_curr.columns:
+                df_feat[col] = df_curr[col].values
 
     # ── Targets ───────────────────────────────────────────────────────────────
     df_feat["target_gpa"]  = df["cumulative_gpa"].round(3)

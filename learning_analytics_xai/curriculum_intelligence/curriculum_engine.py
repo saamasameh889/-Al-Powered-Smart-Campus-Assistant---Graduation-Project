@@ -859,6 +859,149 @@ class CurriculumEngine:
         )
 
 
+    # ── Curriculum SHAP-equivalent values ─────────────────────────────────────
+
+    def get_curriculum_shap_values(
+        self,
+        curriculum_features: dict,
+        predicted_gpa: float,
+    ) -> dict:
+        """
+        Compute rule-based curriculum impact scores in GPA units, analogous to
+        SHAP values for the ML model.  These represent how much each curriculum
+        factor contributes to or detracts from the student's academic outcome,
+        grounded in Zewail degree requirements and academic regulations.
+
+        Returns a dict of {factor_label: impact_value} where positive values
+        help GPA/progress and negative values hurt it.
+        """
+        self._load()
+        scores: dict[str, float] = {}
+        rules = self._gpa_rules
+
+        grad_prog  = curriculum_features.get("graduation_progress_ratio",       0.5)
+        exp_prog   = curriculum_features.get("expected_progress_ratio",          0.5)
+        delay      = curriculum_features.get("graduation_delay_semesters",       0.0)
+        core_ratio = curriculum_features.get("core_course_completion_ratio",     0.5)
+        prereq_rat = curriculum_features.get("prerequisite_completion_ratio",    1.0)
+        blocked_cr = curriculum_features.get("blocked_credit_hours",             0)
+        blocked_core = curriculum_features.get("blocked_core_courses",           0)
+        failed_flag  = curriculum_features.get("failed_prerequisite_flag",       0)
+        chain_depth  = curriculum_features.get("prerequisite_chain_depth",       0)
+        alignment    = curriculum_features.get("curriculum_alignment_score",     0.5)
+        readiness    = curriculum_features.get("graduation_readiness_score",     0.5)
+
+        prob_thresh = rules.get("probation_threshold",  1.7)
+        grad_min    = rules.get("graduation_minimum",   2.0)
+        hon_thresh  = rules.get("honours_threshold",    3.5)
+
+        # Graduation pace — being ahead is positive, behind is negative
+        # Each semester behind ≈ −0.10 GPA impact (from academic literature)
+        scores["Graduation Pace"] = round(-0.10 * max(delay, 0) + 0.05 * abs(min(delay, 0)), 4)
+
+        # Core course completion — foundational for GPA trajectory
+        # Completing >70% of core = positive; <40% late in programme = strongly negative
+        core_impact = (core_ratio - 0.55) * 0.35
+        scores["Core Course Completion"] = round(core_impact, 4)
+
+        # Prerequisite chain integrity — broken chains compound risk
+        prereq_impact = (prereq_rat - 0.5) * 0.20
+        scores["Prerequisite Integrity"] = round(prereq_impact, 4)
+
+        # Blocked credits — future courses prevented = latent GPA risk
+        # Per 3 blocked credits ≈ −0.04 GPA impact
+        blocked_impact = -0.04 * min(blocked_cr / 3.0, 6)
+        scores["Blocked Prerequisites"] = round(blocked_impact, 4)
+
+        # Prerequisite chain depth — deep chains = compounding future risk
+        depth_impact = -0.05 * min(chain_depth, 4)
+        scores["Prerequisite Chain Depth"] = round(depth_impact, 4)
+
+        # Curriculum alignment — taking non-programme courses reduces depth
+        alignment_impact = (alignment - 0.5) * 0.15
+        scores["Curriculum Alignment"] = round(alignment_impact, 4)
+
+        # Graduation readiness — composite driver
+        readiness_impact = (readiness - 0.5) * 0.40
+        scores["Graduation Readiness"] = round(readiness_impact, 4)
+
+        # Failed prerequisite penalty — any blocked chain = immediate warning
+        if failed_flag:
+            scores["Failed Prerequisite Penalty"] = round(-0.12 - 0.04 * min(blocked_core, 4), 4)
+        else:
+            scores["Failed Prerequisite Penalty"] = 0.0
+
+        # GPA-regulation alignment bonus/penalty
+        if predicted_gpa >= hon_thresh:
+            scores["Academic Standing Bonus"] = round(0.08, 4)
+        elif predicted_gpa < prob_thresh:
+            scores["Academic Standing Penalty"] = round(-0.15, 4)
+        elif predicted_gpa < grad_min:
+            scores["Academic Standing Penalty"] = round(-0.08, 4)
+
+        # Remove zero-impact entries for clean display
+        scores = {k: v for k, v in scores.items() if v != 0.0}
+        return scores
+
+    def get_curriculum_feature_table(
+        self,
+        curriculum_features: dict,
+        programme: str,
+    ) -> list[dict]:
+        """
+        Return curriculum features as a structured list for tabular display.
+        Each row: {feature, value, status, interpretation}
+        """
+        self._load()
+        programme = (programme or "CSAI").upper()
+        req = self.get_degree_requirements(programme)
+        total_req = req.get("total_credits", 132)
+        rows = []
+
+        def pct(v): return f"{v*100:.0f}%"
+        def ok(v, threshold): return "✅" if v >= threshold else ("⚠️" if v >= threshold * 0.7 else "🔴")
+
+        grad_prog  = curriculum_features.get("graduation_progress_ratio", 0)
+        delay      = curriculum_features.get("graduation_delay_semesters", 0)
+        core_ratio = curriculum_features.get("core_course_completion_ratio", 0)
+        prereq_rat = curriculum_features.get("prerequisite_completion_ratio", 1)
+        blocked_cr = curriculum_features.get("blocked_credit_hours", 0)
+        blocked_core = curriculum_features.get("blocked_core_courses", 0)
+        failed_flag  = curriculum_features.get("failed_prerequisite_flag", 0)
+        chain_depth  = curriculum_features.get("prerequisite_chain_depth", 0)
+        alignment    = curriculum_features.get("curriculum_alignment_score", 1)
+        readiness    = curriculum_features.get("graduation_readiness_score", 0)
+
+        rows.append({"Feature": "Graduation Progress", "Value": pct(grad_prog),
+                     "Status": ok(grad_prog, 0.5),
+                     "Detail": f"{int(grad_prog * total_req)}/{total_req} credits completed"})
+        rows.append({"Feature": "Curriculum Pace", "Value": f"{abs(delay):.1f} sem {'behind' if delay > 0 else 'ahead'}",
+                     "Status": "✅" if delay <= 0.5 else ("⚠️" if delay <= 1.5 else "🔴"),
+                     "Detail": "On schedule" if delay <= 0.5 else f"~{delay:.1f} semesters behind expected"})
+        rows.append({"Feature": "Core Course Completion", "Value": pct(core_ratio),
+                     "Status": ok(core_ratio, 0.6),
+                     "Detail": f"{pct(core_ratio)} of {programme} core courses completed"})
+        rows.append({"Feature": "Prerequisite Integrity", "Value": pct(prereq_rat),
+                     "Status": ok(prereq_rat, 0.8),
+                     "Detail": "All prerequisites met" if prereq_rat >= 0.95 else f"{pct(prereq_rat)} of prerequisites satisfied"})
+        rows.append({"Feature": "Blocked Credits", "Value": f"{blocked_cr} cr",
+                     "Status": "✅" if blocked_cr == 0 else ("⚠️" if blocked_cr <= 9 else "🔴"),
+                     "Detail": "No blocked courses" if blocked_cr == 0 else f"{blocked_cr} credit hours blocked by failed prerequisites"})
+        rows.append({"Feature": "Blocked Core Courses", "Value": str(blocked_core),
+                     "Status": "✅" if blocked_core == 0 else "🔴",
+                     "Detail": "None" if blocked_core == 0 else f"{blocked_core} core programme courses currently blocked"})
+        rows.append({"Feature": "Prerequisite Chain Depth", "Value": str(chain_depth),
+                     "Status": "✅" if chain_depth <= 1 else ("⚠️" if chain_depth <= 3 else "🔴"),
+                     "Detail": f"Max dependency chain depth: {chain_depth} level(s)"})
+        rows.append({"Feature": "Curriculum Alignment", "Value": pct(alignment),
+                     "Status": ok(alignment, 0.7),
+                     "Detail": f"{pct(alignment)} of taken courses belong to {programme} programme"})
+        rows.append({"Feature": "Graduation Readiness", "Value": pct(readiness),
+                     "Status": ok(readiness, 0.5),
+                     "Detail": "Composite: progress + core + prerequisites + pace"})
+        return rows
+
+
 # ── Singleton ──────────────────────────────────────────────────────────────────
 
 _engine: Optional[CurriculumEngine] = None

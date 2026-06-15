@@ -275,6 +275,102 @@ def simulate_curriculum_scenario(
     }
 
 
+def get_curriculum_preset_scenarios(
+    programme:     str,
+    passed_codes:  list[str],
+    failed_codes:  list[str],
+    credits_passed: float,
+    semester:      int,
+    predicted_gpa: float,
+) -> list[dict]:
+    """
+    Return a list of pre-built curriculum what-if scenarios for the student.
+
+    Each scenario simulates passing, failing, retaking, or postponing a course
+    that is relevant to the student's situation (failed courses, high-impact
+    prerequisites, graduation pace).
+
+    Returns a list of scenario dicts as returned by simulate_curriculum_scenario().
+    """
+    import sys
+    from pathlib import Path
+    _root = Path(__file__).parent.parent
+    if str(_root) not in sys.path:
+        sys.path.insert(0, str(_root))
+    from curriculum_intelligence.curriculum_engine import get_engine as _get_curr
+
+    eng = _get_curr()
+    scenarios = []
+
+    # Scenario group 1: Retake each failed course
+    for code in failed_codes[:3]:
+        result = eng.simulate_course_scenario(
+            programme=programme, passed_codes=passed_codes,
+            failed_codes=failed_codes, credits_passed=credits_passed,
+            semester=semester, course_code=code,
+            outcome="retake", predicted_gpa=predicted_gpa,
+        )
+        scenarios.append({
+            "label":    f"Retake {code}",
+            "group":    "Retake Failed",
+            "scenario": _dataclass_to_dict(result),
+        })
+
+    # Scenario group 2: Fail a passed course (stress test)
+    for code in passed_codes[:2]:
+        deps = eng.get_dependents(code)
+        if deps:  # only show high-impact courses
+            result = eng.simulate_course_scenario(
+                programme=programme, passed_codes=passed_codes,
+                failed_codes=failed_codes, credits_passed=credits_passed,
+                semester=semester, course_code=code,
+                outcome="fail", predicted_gpa=predicted_gpa,
+            )
+            scenarios.append({
+                "label":    f"Fail {code}",
+                "group":    "Risk: If You Fail",
+                "scenario": _dataclass_to_dict(result),
+            })
+
+    # Scenario group 3: Pass the highest-impact prerequisite
+    prog_codes = eng.get_programme_courses(programme)
+    high_impact = sorted(
+        [(c, len(eng.get_all_dependents(c))) for c in prog_codes],
+        key=lambda x: x[1], reverse=True,
+    )
+    for code, n_deps in high_impact[:2]:
+        if code not in passed_codes and n_deps > 0:
+            result = eng.simulate_course_scenario(
+                programme=programme, passed_codes=passed_codes,
+                failed_codes=failed_codes, credits_passed=credits_passed,
+                semester=semester, course_code=code,
+                outcome="pass", predicted_gpa=predicted_gpa,
+            )
+            scenarios.append({
+                "label":    f"Pass {code} (unlocks {n_deps} courses)",
+                "group":    "High-Impact Pass",
+                "scenario": _dataclass_to_dict(result),
+            })
+
+    return scenarios
+
+
+def _dataclass_to_dict(obj) -> dict:
+    """Convert a CurriculumScenarioResult dataclass to a plain dict."""
+    return {
+        "scenario_name":        obj.scenario_name,
+        "course_code":          obj.course_code,
+        "course_title":         obj.course_title,
+        "outcome":              obj.outcome,
+        "delta_credits":        obj.delta_credits,
+        "new_blocked":          obj.new_blocked,
+        "unblocked":            obj.unblocked,
+        "new_graduation_delay": obj.new_graduation_delay,
+        "new_graduation_ok":    obj.new_graduation_ok,
+        "curriculum_message":   obj.curriculum_message,
+    }
+
+
 if __name__ == "__main__":
     print("=== Phase 8: What-If Analysis Engine — standalone test ===")
 

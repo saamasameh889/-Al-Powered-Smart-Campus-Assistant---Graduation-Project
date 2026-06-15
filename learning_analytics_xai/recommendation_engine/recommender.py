@@ -327,10 +327,17 @@ def generate_recommendations(
             shap_driver="Lab Scores",
         ))
 
-    # ── Inject curriculum-aware recommendations ───────────────────────────────
+    # ── Curriculum-aware recommendations (PRIMARY — always shown first) ────────
+    # Curriculum recs reference official Zewail handbooks and regulations.
+    # Priority-1 curriculum recs (prerequisite bottlenecks, graduation GPA failures)
+    # are inserted BEFORE all other recommendations — they represent the most
+    # critical academic obligations a student has per programme requirements.
+    curriculum_priority1: list[Recommendation] = []
+    curriculum_other:     list[Recommendation] = []
+
     if curriculum_recs:
         for cr in curriculum_recs:
-            recs.append(Recommendation(
+            rec = Recommendation(
                 priority    = cr.get("priority",    3),
                 category    = cr.get("category",    "Curriculum"),
                 icon        = cr.get("icon",        "📋"),
@@ -338,18 +345,25 @@ def generate_recommendations(
                 detail      = cr.get("detail",      ""),
                 impact      = cr.get("impact",      ""),
                 shap_driver = cr.get("shap_driver", "Curriculum"),
-            ))
+            )
+            if rec.priority == 1:
+                curriculum_priority1.append(rec)
+            else:
+                curriculum_other.append(rec)
+
+    # Assemble final list: critical curriculum recs → score recs → other curriculum recs
+    combined = curriculum_priority1 + recs + curriculum_other
 
     # Deduplicate by title and sort by priority
     seen_titles: set[str] = set()
     unique_recs = []
-    for r in recs:
+    for r in combined:
         if r.title not in seen_titles:
             seen_titles.add(r.title)
             unique_recs.append(r)
 
     unique_recs.sort(key=lambda r: r.priority)
-    return unique_recs[:10]   # max 10 recommendations (increased from 8 to fit curriculum recs)
+    return unique_recs[:12]   # max 12 to accommodate curriculum recs
 
 
 def recs_to_dict(recs: list[Recommendation]) -> list[dict]:
