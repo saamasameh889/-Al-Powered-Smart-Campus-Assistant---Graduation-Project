@@ -40,6 +40,86 @@ CHAT_MODEL      = "gpt-4o"
 _GROQ_BASE  = "https://api.groq.com/openai/v1"
 _GROQ_MODEL = "llama-3.3-70b-versatile"
 
+# ── Grade-point map (used by calculate_gpa tool) ──────────────────────────────
+_GRADE_POINTS: dict[str, float] = {
+    "A+": 4.0, "A": 4.0, "A-": 3.7,
+    "B+": 3.3, "B": 3.0, "B-": 2.7,
+    "C+": 2.3, "C": 2.0, "C-": 1.7,
+    "D+": 1.3, "D": 1.0, "F":  0.0,
+}
+_GRAD_CREDITS: dict[str, int] = {"CSAI": 132, "BUS": 114, "SCI": 132, "ENGR": 140}
+
+# ── Agentic tool definitions (OpenAI function-calling format) ──────────────────
+CAMPUS_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "search_curriculum",
+            "description": "Search the Zewail City course catalog by keyword or topic.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "keyword": {"type": "string", "description": "Course name, topic, or course code"},
+                    "program": {"type": "string", "description": "Optional program filter: CSAI, BUS, SCI, ENGR"},
+                },
+                "required": ["keyword"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "calculate_gpa",
+            "description": "Calculate cumulative GPA from a list of letter grades and credit hours.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "grades": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "grade":   {"type": "string", "description": "Letter grade: A, B+, C-, etc."},
+                                "credits": {"type": "number", "description": "Credit hours for this course"},
+                            },
+                            "required": ["grade", "credits"],
+                        },
+                    },
+                },
+                "required": ["grades"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_graduation_requirements",
+            "description": "Return total credit hours required to graduate from a Zewail City school.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "school": {"type": "string", "description": "School code: CSAI, BUS, SCI, or ENGR"},
+                },
+                "required": ["school"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_prerequisites",
+            "description": "Retrieve prerequisite information for a specific course code.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "course_code": {"type": "string", "description": "Course code such as 'CSAI 253' or 'MATH 201'"},
+                },
+                "required": ["course_code"],
+            },
+        },
+    },
+]
+
 _KEYWORD_STOPWORDS = frozenset({
     "what", "which", "when", "where", "who", "how", "does", "do", "is", "are",
     "the", "a", "an", "of", "in", "at", "to", "for", "and", "or", "but", "not",
@@ -440,6 +520,285 @@ class CampusRAG:
         chunks, note = self.retrieve(query, top_k=top_k)
         answer = self.generate(query, chunks, history=history, query_note=note)
         return answer, chunks
+
+
+    # ── Intent Classification ───────────────────────────────────────────────────
+
+    def classify_intent(self, query: str) -> str:
+        """
+        Classify the query into one of:
+          courses | faculty | prerequisites | graduation | scholarships | general
+
+        Uses gpt-4o-mini (fast, cheap). Falls back to 'general' on any error.
+        """
+        try:
+            resp = self._oai_chat.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{
+                    "role": "user",
+                    "content": (
+                        "Classify this university academic query into exactly ONE category:\n"
+                        "courses | faculty | prerequisites | graduation | scholarships | general\n\n"
+                        f"Query: {query}\n\n"
+                        "Reply with the single category word only."
+                    ),
+                }],
+                max_tokens=10,
+                temperature=0,
+            )
+            intent = resp.choices[0].message.content.strip().lower().split()[0]
+            _VALID = {"courses", "faculty", "prerequisites", "graduation", "scholarships", "general"}
+            return intent if intent in _VALID else "general"
+        except Exception:
+            return "general"
+
+    # ── LLM-based Reranking ─────────────────────────────────────────────────────
+
+    def rerank(
+        self,
+        query:  str,
+        chunks: list[RetrievedChunk],
+        top_n:  int = 5,
+    ) -> list[RetrievedChunk]:
+        """
+        Rerank retrieved chunks with a single gpt-4o-mini call.
+        Returns up to top_n chunks ordered by relevance to query.
+        Falls back to original cosine-score order on any error.
+        """
+        if len(chunks) <= 2:
+            return chunks
+        try:
+            doc_block = "\n".join(
+                f"[{i}] {c.text[:280].replace(chr(10), ' ')}"
+                for i, c in enumerate(chunks)
+            )
+            resp = self._oai_chat.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{
+                    "role": "user",
+                    "content": (
+                        f"Query: {query}\n\n"
+                        f"Documents:\n{doc_block}\n\n"
+                        f"Output the {min(top_n, len(chunks))} most relevant document indices "
+                        f"in descending relevance order. Comma-separated integers only."
+                    ),
+                }],
+                max_tokens=40,
+                temperature=0,
+            )
+            raw     = resp.choices[0].message.content.strip()
+            indices = [int(x) for x in re.findall(r'\d+', raw) if int(x) < len(chunks)]
+            seen: set[int] = set()
+            reranked: list[RetrievedChunk] = []
+            for i in indices[:top_n]:
+                if i not in seen:
+                    reranked.append(chunks[i])
+                    seen.add(i)
+            for i, c in enumerate(chunks):
+                if i not in seen:
+                    reranked.append(c)
+            return reranked
+        except Exception:
+            return chunks
+
+    # ── Streaming Generation ────────────────────────────────────────────────────
+
+    def generate_stream(
+        self,
+        query:       str,
+        chunks:      list[RetrievedChunk],
+        history:     Optional[list[dict]] = None,
+        temperature: float = 0.2,
+        query_note:  str = "",
+    ):
+        """
+        Streaming version of generate(). Yields token strings progressively.
+        Identical prompt construction to generate() — safe to swap in.
+        """
+        if not chunks:
+            context_text = "No relevant documents found in the knowledge base."
+        else:
+            parts = []
+            if query_note:
+                parts.append(query_note)
+            for i, c in enumerate(chunks, 1):
+                src_label = c.source + (f" (page {c.page})" if c.page else "")
+                parts.append(f"[Source {i} | {c.category} | {src_label}]\n{c.text}")
+            context_text = "\n\n---\n\n".join(parts)
+
+        messages: list[dict] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        if history:
+            messages.extend(history[-12:])
+        messages.append({
+            "role": "user",
+            "content": (
+                f"CONTEXT FROM KNOWLEDGE BASE:\n{context_text}\n\n"
+                f"STUDENT QUESTION:\n{query}"
+            ),
+        })
+
+        stream = self._oai_chat.chat.completions.create(
+            model=self._chat_model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=1200,
+            stream=True,
+        )
+        for chunk in stream:
+            delta = chunk.choices[0].delta.content
+            if delta:
+                yield delta
+
+    # ── Follow-up Suggestions ───────────────────────────────────────────────────
+
+    def suggest_followups(self, query: str, answer: str, n: int = 3) -> list[str]:
+        """Generate n short follow-up questions using gpt-4o-mini."""
+        try:
+            resp = self._oai_chat.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{
+                    "role": "user",
+                    "content": (
+                        f"A Zewail City student asked: '{query}'\n"
+                        f"Advisor answered: '{answer[:350]}'\n\n"
+                        f"Write {n} short natural follow-up questions the student might ask next. "
+                        f"One per line, no numbering or bullets, max 12 words each."
+                    ),
+                }],
+                max_tokens=120,
+                temperature=0.8,
+            )
+            lines = [
+                l.strip("- •·1234567890. )")
+                for l in resp.choices[0].message.content.strip().split("\n")
+                if l.strip("- •·1234567890. )")
+            ]
+            return lines[:n]
+        except Exception:
+            return []
+
+    # ── Agentic Tool Execution ──────────────────────────────────────────────────
+
+    def _execute_tool(self, name: str, args: dict) -> str:
+        """Run one CAMPUS_TOOLS function call and return the result string."""
+        if name == "search_curriculum":
+            keyword = args.get("keyword", "")
+            results = self._keyword_retrieve(keyword, n=4)
+            if not results:
+                return f"No courses found matching '{keyword}'."
+            return "\n".join(
+                f"- [{c.category}] {c.source}: {c.text[:200].replace(chr(10),' ')}"
+                for c in results
+            )
+
+        elif name == "calculate_gpa":
+            grades = args.get("grades", [])
+            total_pts = total_cr = 0.0
+            for g in grades:
+                letter = str(g.get("grade", "")).strip().upper()
+                pts    = _GRADE_POINTS.get(letter)
+                cr     = float(g.get("credits", 3))
+                if pts is not None:
+                    total_pts += pts * cr
+                    total_cr  += cr
+            if total_cr == 0:
+                return "Could not calculate GPA — no valid grades provided."
+            return (
+                f"Calculated GPA: {total_pts / total_cr:.2f} "
+                f"over {total_cr:.0f} credit hours."
+            )
+
+        elif name == "get_graduation_requirements":
+            school = str(args.get("school", "")).upper().strip()
+            total  = _GRAD_CREDITS.get(school)
+            if total is None:
+                return (
+                    f"Unknown school '{school}'. "
+                    f"Valid: CSAI (132 cr), BUS (114 cr), SCI (132 cr), ENGR (~140 cr)."
+                )
+            return f"{school} requires {total} total credit hours to graduate from Zewail City."
+
+        elif name == "get_prerequisites":
+            code    = str(args.get("course_code", "")).upper().strip()
+            results = self._keyword_retrieve(f"{code} prerequisite", n=3)
+            if not results:
+                return f"No prerequisite information found for {code}."
+            return "\n".join(
+                f"- {c.text[:300].replace(chr(10),' ')}" for c in results
+            )
+
+        return f"Unknown tool: {name}"
+
+    def answer_with_tools(
+        self,
+        query:      str,
+        history:    Optional[list[dict]] = None,
+        top_k:      int = 6,
+        max_rounds: int = 3,
+    ) -> tuple[str, list[RetrievedChunk]]:
+        """
+        Agentic answer: runs an OpenAI function-calling loop.
+        The model may call CAMPUS_TOOLS one or more times before giving a final answer.
+        """
+        import json as _json
+
+        chunks, note = self.retrieve(query, top_k=top_k)
+
+        if not chunks:
+            context_text = "No relevant documents found in the knowledge base."
+        else:
+            parts = [note] if note else []
+            for i, c in enumerate(chunks, 1):
+                src_label = c.source + (f" (page {c.page})" if c.page else "")
+                parts.append(f"[Source {i} | {c.category} | {src_label}]\n{c.text}")
+            context_text = "\n\n---\n\n".join(parts)
+
+        messages: list[dict] = [{"role": "system", "content": SYSTEM_PROMPT}]
+        if history:
+            messages.extend(history[-12:])
+        messages.append({
+            "role": "user",
+            "content": (
+                f"CONTEXT FROM KNOWLEDGE BASE:\n{context_text}\n\n"
+                f"STUDENT QUESTION:\n{query}"
+            ),
+        })
+
+        for _ in range(max_rounds):
+            resp = self._oai_chat.chat.completions.create(
+                model=self._chat_model,
+                messages=messages,
+                tools=CAMPUS_TOOLS,
+                tool_choice="auto",
+                temperature=0.2,
+                max_tokens=1200,
+            )
+            msg = resp.choices[0].message
+
+            if not getattr(msg, "tool_calls", None):
+                return msg.content.strip(), chunks
+
+            messages.append(msg)
+            for tc in msg.tool_calls:
+                try:
+                    tool_args = _json.loads(tc.function.arguments)
+                except Exception:
+                    tool_args = {}
+                result = self._execute_tool(tc.function.name, tool_args)
+                messages.append({
+                    "role":         "tool",
+                    "tool_call_id": tc.id,
+                    "content":      result,
+                })
+
+        # Safety exit: one final non-tool pass
+        resp = self._oai_chat.chat.completions.create(
+            model=self._chat_model,
+            messages=messages,
+            temperature=0.2,
+            max_tokens=1200,
+        )
+        return resp.choices[0].message.content.strip(), chunks
 
 
 # ── Standalone demo ────────────────────────────────────────────────────────────

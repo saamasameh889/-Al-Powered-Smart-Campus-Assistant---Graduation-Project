@@ -168,7 +168,14 @@ class ConversationalAssistant:
         if answer is None:
             # ── 3a. Standard RAG path (general / campus questions) ──────────────
             retrieval_query = self._build_retrieval_query(question, session)
-            chunks, query_note = self._rag.retrieve(retrieval_query, top_k=top_k)
+
+            # Intent classification → adjusts retrieval depth
+            intent      = self._rag.classify_intent(question)
+            adjusted_k  = top_k + 2 if intent in ("graduation", "prerequisites") else top_k
+            chunks, query_note = self._rag.retrieve(retrieval_query, top_k=adjusted_k)
+
+            # Rerank retrieved chunks
+            chunks = self._rag.rerank(question, chunks, top_n=top_k)
 
             # Build history with profile context prepended
             profile_ctx = session.profile_summary()
@@ -179,28 +186,109 @@ class ConversationalAssistant:
                     {"role": "assistant", "content": "Understood. I will use this context to personalise my answers."},
                 ] + gen_history
 
-            answer = self._rag.generate(
-                question, chunks, history=gen_history, query_note=query_note
-            )
+            # Use agentic tool-calling for calculation-heavy intents
+            if intent in ("prerequisites", "graduation"):
+                answer, chunks = self._rag.answer_with_tools(
+                    question, history=gen_history, top_k=top_k
+                )
+            else:
+                answer = self._rag.generate(
+                    question, chunks, history=gen_history, query_note=query_note
+                )
 
         # ── 4. Record in session ───────────────────────────────────────────────
+        self._finalize(session, question, answer, chunks, t0)
+        return answer, chunks
+
+    def ask_stream(
+        self,
+        question: str,
+        session:  "ConversationSession",
+        top_k:    int = 6,
+    ):
+        """
+        Streaming variant of ask().
+
+        Returns: (chunks, content, is_streamed)
+          - is_streamed=False → content is a complete answer string
+          - is_streamed=True  → content is a generator that yields token strings;
+                                session is finalised once the generator is exhausted
+        """
+        t0 = time.time()
+
+        # ── 1. Update student profile ──────────────────────────────────────────
+        from phase8_advisor_engine import update_profile
+        current_profile = session.get_profile()
+        updated_profile = update_profile(question, current_profile)
+        session.set_profile(updated_profile)
+
+        # ── 2. Try the Academic Advisor engine ─────────────────────────────────
+        history = list(session.recent_history())
+        answer, chunks = self._advisor.advise(question, updated_profile, history)
+
+        if answer is not None:
+            self._finalize(session, question, answer, chunks, t0)
+            return chunks, answer, False
+
+        # ── 3. RAG path with intent + reranking ───────────────────────────────
+        retrieval_query     = self._build_retrieval_query(question, session)
+        intent              = self._rag.classify_intent(question)
+        adjusted_k          = top_k + 2 if intent in ("graduation", "prerequisites") else top_k
+        chunks, query_note  = self._rag.retrieve(retrieval_query, top_k=adjusted_k)
+        chunks              = self._rag.rerank(question, chunks, top_n=top_k)
+
+        profile_ctx = session.profile_summary()
+        gen_history = list(session.recent_history())
+        if profile_ctx:
+            gen_history = [
+                {"role": "user",      "content": f"[Context] {profile_ctx}"},
+                {"role": "assistant", "content": "Understood. I will use this context to personalise my answers."},
+            ] + gen_history
+
+        # Agentic path (no streaming — already fast, structured output)
+        if intent in ("prerequisites", "graduation"):
+            answer, chunks = self._rag.answer_with_tools(
+                question, history=gen_history, top_k=top_k
+            )
+            self._finalize(session, question, answer, chunks, t0)
+            return chunks, answer, False
+
+        # Streaming RAG path
+        stream_gen = self._rag.generate_stream(
+            question, chunks, history=gen_history, query_note=query_note
+        )
+
+        def _streaming():
+            full_text = ""
+            for tok in stream_gen:
+                full_text += tok
+                yield tok
+            self._finalize(session, question, full_text, chunks, t0)
+
+        return chunks, _streaming(), True
+
+    # ── Internal helpers ───────────────────────────────────────────────────────
+
+    def _finalize(
+        self,
+        session:  ConversationSession,
+        question: str,
+        answer:   str,
+        chunks:   list,
+        t0:       float,
+    ) -> None:
+        """Persist the completed turn into session state and save to disk."""
         session.add_user(question)
         session.add_assistant(answer)
-        session.query_count += 1
+        session.query_count         += 1
         session.total_response_time += time.time() - t0
-
         for c in chunks[:3]:
             cat = c.category
             session.topic_counts[cat] = session.topic_counts.get(cat, 0) + 1
-
         try:
             session.save()
         except Exception:
             pass
-
-        return answer, chunks
-
-    # ── Internal helpers ───────────────────────────────────────────────────────
 
     def _build_retrieval_query(self, question: str, session: ConversationSession) -> str:
         """

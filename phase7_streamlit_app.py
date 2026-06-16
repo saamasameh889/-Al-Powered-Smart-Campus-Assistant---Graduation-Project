@@ -54,6 +54,27 @@ except Exception as _e:
     _XAI_IMPORT_OK  = False
     _XAI_IMPORT_ERR = str(_e)
 
+# ── Product D: clustering page ─────────────────────────────────────────────────
+try:
+    from clustering_page import render_clustering_page as _render_clustering_page
+    _CLUST_IMPORT_OK  = True
+    _CLUST_IMPORT_ERR = ""
+except Exception as _e2:
+    _CLUST_IMPORT_OK  = False
+    _CLUST_IMPORT_ERR = str(_e2)
+
+# ── Product C: forecasting page ────────────────────────────────────────────────
+_FCAST_DASHBOARD = str(PROJECT_ROOT / "learning_analytics_xai" / "dashboard")
+if _FCAST_DASHBOARD not in sys.path:
+    sys.path.insert(0, _FCAST_DASHBOARD)
+try:
+    from forecasting_page import render_forecasting_page as _render_forecasting_page
+    _FCAST_IMPORT_OK  = True
+    _FCAST_IMPORT_ERR = ""
+except Exception as _e3:
+    _FCAST_IMPORT_OK  = False
+    _FCAST_IMPORT_ERR = str(_e3)
+
 st.set_page_config(
     page_title="Zewail City Campus Assistant",
     page_icon="🎓",
@@ -595,6 +616,8 @@ def init_state() -> None:
         st.session_state["chat_messages"] = []
     if "_pending" not in st.session_state:
         st.session_state["_pending"] = None
+    if "_last_audio_hash" not in st.session_state:
+        st.session_state["_last_audio_hash"] = None
 
 
 # ── Header ─────────────────────────────────────────────────────────────────────
@@ -825,6 +848,19 @@ def render_sources(sources: list[dict], elapsed: float) -> None:
                 unsafe_allow_html=True)
 
 
+# ── Voice transcription helper ─────────────────────────────────────────────────
+def _transcribe(audio_file) -> str:
+    """Send recorded audio to OpenAI Whisper and return transcript text."""
+    import os
+    from openai import OpenAI as _OAI
+    client = _OAI(api_key=os.environ.get("OPENAI_API_KEY", ""))
+    transcript = client.audio.transcriptions.create(
+        model="whisper-1",
+        file=("question.wav", audio_file, "audio/wav"),
+    )
+    return transcript.text.strip()
+
+
 # ── Chat renderer ──────────────────────────────────────────────────────────────
 def render_chat(assistant) -> None:
     session = st.session_state["session"]
@@ -832,6 +868,7 @@ def render_chat(assistant) -> None:
 
     render_suggestions(compact=bool(msgs))
 
+    # ── Render history ─────────────────────────────────────────────────────────
     for msg in msgs:
         if msg["role"] == "user":
             with st.chat_message("user", avatar="👤"):
@@ -856,39 +893,132 @@ def render_chat(assistant) -> None:
                 ):
                     render_sources(srcs, msg.get("elapsed", 0))
 
+            followups = msg.get("followups", [])
+            if followups:
+                st.markdown(
+                    "<div style='font-size:.68rem;color:#3D3060;margin:6px 0 4px 46px;"
+                    "text-transform:uppercase;letter-spacing:.1em'>✦ Follow-up</div>",
+                    unsafe_allow_html=True,
+                )
+                fu_cols = st.columns(len(followups))
+                for fi, (fcol, fsug) in enumerate(zip(fu_cols, followups)):
+                    if fcol.button(fsug, key=f"fu_{id(msg)}_{fi}"):
+                        st.session_state["_pending"] = fsug
+                        st.rerun()
+
+    # ── Voice input ────────────────────────────────────────────────────────────
+    with st.expander("🎤 Voice Input", expanded=False):
+        st.markdown(
+            "<div style='font-size:.76rem;color:#4A3A7A;margin-bottom:8px'>"
+            "Record your question — it will be transcribed automatically.</div>",
+            unsafe_allow_html=True,
+        )
+        try:
+            audio_val = st.audio_input("Record", label_visibility="collapsed", key="voice_rec")
+            if audio_val is not None:
+                raw = audio_val.read()
+                ahash = hash(raw)
+                if st.session_state.get("_last_audio_hash") != ahash:
+                    st.session_state["_last_audio_hash"] = ahash
+                    with st.spinner("Transcribing…"):
+                        try:
+                            import io
+                            text = _transcribe(io.BytesIO(raw))
+                            if text:
+                                st.caption(f"Heard: *{text}*")
+                                st.session_state["_pending"] = text
+                                st.rerun()
+                        except Exception as e:
+                            st.warning(f"Transcription failed: {e}")
+        except Exception:
+            st.caption("Voice input not available in this environment.")
+
+    # ── Text input ─────────────────────────────────────────────────────────────
     pending    = st.session_state.pop("_pending", None)
     user_input = st.chat_input(
         "Ask anything — courses, prerequisites, graduation plan, scholarships, policies…"
     )
     question = pending or user_input
 
-    if question:
-        st.session_state["chat_messages"].append({"role": "user", "content": question})
-        with st.spinner("Thinking…"):
-            try:
-                t0 = time.time()
-                answer, chunks = assistant.ask(question, session)
-                elapsed = time.time() - t0
-                st.session_state["chat_messages"].append({
-                    "role":       "assistant",
-                    "content":    _clean_answer(answer),
-                    "is_advisor": _is_advisor_response(answer),
-                    "sources":    [
-                        {"source": c.source, "page": c.page, "category": c.category,
-                         "score": c.score, "text": c.text}
-                        for c in chunks
-                    ],
-                    "elapsed":    elapsed,
-                })
-            except Exception as exc:
-                st.session_state["chat_messages"].append({
-                    "role": "assistant",
-                    "content": f"**Error:** {exc}",
-                    "is_advisor": False,
-                    "sources": [],
-                    "elapsed": 0,
-                })
-        st.rerun()
+    if not question:
+        return
+
+    # ── Render new exchange live (streaming) ───────────────────────────────────
+    with st.chat_message("user", avatar="👤"):
+        st.markdown(question)
+
+    elapsed = 0.0
+    chunks  = []
+    answer  = ""
+    with st.chat_message("assistant", avatar="🎓"):
+        try:
+            t0 = time.time()
+            with st.spinner("Retrieving…"):
+                result_chunks, content, is_streamed = assistant.ask_stream(question, session)
+            chunks = result_chunks
+
+            if is_streamed:
+                answer = st.write_stream(content)
+            else:
+                clean  = _clean_answer(content)
+                is_adv = _is_advisor_response(clean)
+                if is_adv:
+                    st.markdown(
+                        '<span class="advisor-badge">🎓 &nbsp;Academic Advisor Response</span>',
+                        unsafe_allow_html=True,
+                    )
+                st.markdown(clean)
+                answer = clean
+
+            elapsed = time.time() - t0
+
+        except Exception as exc:
+            answer = f"**Error:** {exc}"
+            st.markdown(answer)
+
+    # Sources (outside chat bubble)
+    srcs = [
+        {"source": c.source, "page": c.page, "category": c.category,
+         "score": c.score, "text": c.text}
+        for c in chunks
+    ]
+    if srcs:
+        with st.expander(
+            f"📚 {len(srcs)} source{'s' if len(srcs) > 1 else ''}  ·  {elapsed:.1f}s",
+            expanded=False,
+        ):
+            render_sources(srcs, elapsed)
+
+    # Follow-up suggestions
+    followups: list[str] = []
+    try:
+        followups = assistant._rag.suggest_followups(question, _clean_answer(answer), n=3)
+    except Exception:
+        pass
+    if followups:
+        st.markdown(
+            "<div style='font-size:.68rem;color:#3D3060;margin:8px 0 4px;"
+            "text-transform:uppercase;letter-spacing:.1em'>✦ Follow-up questions</div>",
+            unsafe_allow_html=True,
+        )
+        fu_cols = st.columns(len(followups))
+        for fi, (fcol, fsug) in enumerate(zip(fu_cols, followups)):
+            if fcol.button(fsug, key=f"new_fu_{fi}"):
+                st.session_state["_pending"] = fsug
+                st.rerun()
+
+    # Persist to display history
+    clean_answer = _clean_answer(answer)
+    msgs.append({"role": "user", "content": question})
+    msgs.append({
+        "role":       "assistant",
+        "content":    clean_answer,
+        "is_advisor": _is_advisor_response(clean_answer),
+        "sources":    srcs,
+        "elapsed":    elapsed,
+        "followups":  followups,
+    })
+    st.rerun()
 
 
 # ── Analytics tab ──────────────────────────────────────────────────────────────
@@ -993,10 +1123,13 @@ def main() -> None:
             rag_ok = False
             err    = str(exc)
 
-    tab_chat, tab_analytics, tab_xai = st.tabs([
+    tab_chat, tab_analytics, tab_xai, tab_eval, tab_clust, tab_fcast = st.tabs([
         "💬  Chat",
         "📊  Analytics",
         "🧠  Learning Analytics & XAI",
+        "🔬  RAG Evaluation",
+        "🧩  Student Archetypes",
+        "📈  GPA Forecast",
     ])
 
     with tab_chat:
@@ -1021,6 +1154,101 @@ def main() -> None:
             except Exception as _xai_err:
                 import traceback as _tb
                 st.error(f"**Learning Analytics error:** {_xai_err}")
+                st.code(_tb.format_exc(), language="python")
+
+        # ── XAI → RAG Advisor Bridge ───────────────────────────────────────────
+        if st.session_state.get("xai_analysed"):
+            st.divider()
+            st.markdown(
+                "<div style='font-size:.75rem;font-weight:700;color:#9D77F5;"
+                "text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px'>"
+                "🎓 &nbsp;Consult the Academic Advisor</div>",
+                unsafe_allow_html=True,
+            )
+            flow    = st.session_state.get("xai_flow", {})
+            profile = st.session_state.get("xai_profile", {})
+            result  = st.session_state.get("xai_result", {})
+
+            prog   = flow.get("programme", "")
+            sem    = flow.get("semester", "")
+            risk   = getattr(result, "risk_label", "unknown risk") if result else "unknown risk"
+            mid    = profile.get("avg_midterm",  "?")
+            fin    = profile.get("avg_final",    "?")
+            att    = profile.get("avg_attendance","?")
+            failed = profile.get("failed_courses", 0)
+
+            default_q = (
+                f"I'm a {prog} student in semester {sem}. "
+                f"My XAI risk assessment is '{risk}'. "
+                f"Avg midterm {mid}%, final {fin}%, attendance {att}%, "
+                f"failed courses {failed}. "
+                f"What should I do to improve my academic standing?"
+            )
+
+            bridge_q = st.text_area(
+                "Pre-filled from your XAI profile — edit if needed:",
+                value=default_q,
+                height=90,
+                key="xai_bridge_q",
+            )
+            if st.button("Send to Academic Advisor →", key="xai_bridge_btn"):
+                if rag_ok and bridge_q.strip():
+                    with st.spinner("Getting advisor response…"):
+                        try:
+                            adv_answer, adv_chunks = assistant.ask(bridge_q.strip(), st.session_state["session"])
+                        except Exception as _be:
+                            adv_answer  = f"**Error:** {_be}"
+                            adv_chunks  = []
+                    st.markdown("**Advisor says:**")
+                    st.markdown(_clean_answer(adv_answer))
+                    if adv_chunks:
+                        with st.expander(f"📚 {len(adv_chunks)} sources"):
+                            render_sources(
+                                [{"source": c.source, "page": c.page, "category": c.category,
+                                  "score": c.score, "text": c.text} for c in adv_chunks],
+                                0,
+                            )
+                    # Also save to chat history so it appears in Chat tab
+                    st.session_state["chat_messages"].append(
+                        {"role": "user", "content": bridge_q.strip()}
+                    )
+                    st.session_state["chat_messages"].append({
+                        "role":       "assistant",
+                        "content":    _clean_answer(adv_answer),
+                        "is_advisor": _is_advisor_response(adv_answer),
+                        "sources":    [],
+                        "elapsed":    0,
+                        "followups":  [],
+                    })
+
+    with tab_eval:
+        from rag_evaluator import render_evaluation_tab
+        if rag_ok:
+            render_evaluation_tab(assistant)
+        else:
+            st.warning("Load the RAG pipeline first (set OPENAI_API_KEY and ensure the vector DB exists).")
+
+    with tab_clust:
+        if not _CLUST_IMPORT_OK:
+            st.error(f"**Clustering import failed:** {_CLUST_IMPORT_ERR}")
+        else:
+            try:
+                _oai = assistant._rag._oai_chat if rag_ok and assistant else None
+                _render_clustering_page(openai_client=_oai)
+            except Exception as _ce:
+                import traceback as _tb
+                st.error(f"**Clustering error:** {_ce}")
+                st.code(_tb.format_exc(), language="python")
+
+    with tab_fcast:
+        if not _FCAST_IMPORT_OK:
+            st.error(f"**Forecasting import failed:** {_FCAST_IMPORT_ERR}")
+        else:
+            try:
+                _render_forecasting_page()
+            except Exception as _fe:
+                import traceback as _tb
+                st.error(f"**Forecasting error:** {_fe}")
                 st.code(_tb.format_exc(), language="python")
 
 
