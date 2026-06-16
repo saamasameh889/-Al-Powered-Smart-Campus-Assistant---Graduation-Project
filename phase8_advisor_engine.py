@@ -151,6 +151,15 @@ _RISK_KW = frozenset([
     "heavy load", "too many courses", "overload", "academic standing",
     "will i fail", "danger of failing",
 ])
+# Phrasing that signals the student is asking about THEIR OWN risk/standing,
+# as opposed to a general policy/definition question like "what is the
+# probation policy?". Only the former should route to the personal risk engine.
+_SELF_RISK_RE = re.compile(
+    r'\b(am i|will i|my risk|my gpa|my academic standing|my workload|'
+    r'do i|could i|can i|should i|i be put|i fail|i go on|i get put|'
+    r'for me|i\'m taking|i am taking)\b',
+    re.I,
+)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -607,10 +616,16 @@ class IntentRouter:
             if kw in q:
                 return "prerequisite"
 
-        # Risk / standing
+        # Risk / standing — only when the question is about the student's OWN
+        # situation. A general policy/definition question (e.g. "what is the
+        # academic probation policy?") should fall through to standard RAG,
+        # which can answer from the official documents instead of generating
+        # a personal risk assessment for an unrelated question.
         for kw in _RISK_KW:
             if kw in q:
-                return "risk"
+                if _SELF_RISK_RE.search(q):
+                    return "risk"
+                break
 
         # Pure profile share (no question mark, no question word)
         is_info_share = bool(
