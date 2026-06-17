@@ -2,9 +2,12 @@
 # Install with: pip install -r requirements.txt
 # Then (once): playwright install chromium
 #
-# Covers both products:
+# Covers all five products:
 #   Product A — RAG Academic Advisor (phases 1-7)
 #   Product B — Learning Analytics & XAI Dashboard (learning_analytics_xai/)
+#   Product C — GPA Trajectory Forecasting (LSTM)
+#   Product D — Student Archetype Clustering (GMM)
+#   Product E — GitHub Career Advisor
 
 # ── Web scraping (Product A) ─────────────────────────────────────────────────
 requests==2.32.3
@@ -51,6 +54,20 @@ streamlit==1.41.1
 # ── Utilities ────────────────────────────────────────────────────────────────
 python-dotenv==1.0.1
 httpx==0.28.1
+
+# ── Deep learning — Product C (GPA Forecasting LSTM) ─────────────────────────
+torch==2.6.0+cpu
+# Install with: pip install torch==2.6.0+cpu --index-url https://download.pytorch.org/whl/cpu
+
+# ── Dimensionality reduction — Product D (Student Clustering) ────────────────
+umap-learn==0.5.7
+pynndescent==0.5.13
+
+# ── Anthropic SDK — Product E (Career Advisor model comparison) ──────────────
+anthropic>=0.40.0
+
+# ── Graph analysis — Academic advisor prerequisite engine ────────────────────
+networkx>=3.3
 
 # ── Testing ───────────────────────────────────────────────────────────────────
 pytest==9.0.3

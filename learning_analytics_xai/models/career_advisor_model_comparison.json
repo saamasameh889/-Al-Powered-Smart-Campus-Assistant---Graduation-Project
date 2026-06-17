@@ -1,0 +1,136 @@
+{
+  "experiment": "GitHub Career Advisor — LLM Model Selection",
+  "product": "Product E (Career Advisor)",
+  "script": "compare_career_models.py",
+  "judge_model": "gpt-4o-mini",
+  "criteria": ["specificity", "actionability", "programme_fit", "structure"],
+  "criteria_scale": "1–5 (5 = best)",
+  "profiles_tested": [
+    "CSAI Year-2 (sparse portfolio, semester 3)",
+    "SWE Year-3 (decent portfolio, wrong stack, semester 6)",
+    "DSAI Year-4 (strong portfolio, final polish, semester 8)"
+  ],
+  "results": {
+    "gpt-4o": {
+      "per_profile": [
+        {
+          "profile": "CSAI Year-2 (sparse portfolio)",
+          "programme": "CSAI",
+          "specificity": 5,
+          "actionability": 5,
+          "programme_fit": 4,
+          "structure": 5,
+          "avg": 4.75,
+          "elapsed_s": 4.21
+        },
+        {
+          "profile": "SWE Year-3 (decent portfolio, wrong stack)",
+          "programme": "SWE",
+          "specificity": 5,
+          "actionability": 5,
+          "programme_fit": 5,
+          "structure": 5,
+          "avg": 5.0,
+          "elapsed_s": 4.38
+        },
+        {
+          "profile": "DSAI Year-4 (strong portfolio, final polish)",
+          "programme": "DSAI",
+          "specificity": 5,
+          "actionability": 4,
+          "programme_fit": 5,
+          "structure": 5,
+          "avg": 4.75,
+          "elapsed_s": 4.97
+        }
+      ],
+      "aggregate": {
+        "specificity": 5.0,
+        "actionability": 4.67,
+        "programme_fit": 4.67,
+        "structure": 5.0,
+        "overall_avg": 4.75,
+        "avg_elapsed_s": 4.52
+      }
+    },
+    "gpt-4o-mini": {
+      "per_profile": [
+        {
+          "profile": "CSAI Year-2 (sparse portfolio)",
+          "programme": "CSAI",
+          "specificity": 4,
+          "actionability": 5,
+          "programme_fit": 5,
+          "structure": 5,
+          "avg": 4.75,
+          "elapsed_s": 5.12
+        },
+        {
+          "profile": "SWE Year-3 (decent portfolio, wrong stack)",
+          "programme": "SWE",
+          "specificity": 4,
+          "actionability": 5,
+          "programme_fit": 5,
+          "structure": 5,
+          "avg": 4.75,
+          "elapsed_s": 5.63
+        },
+        {
+          "profile": "DSAI Year-4 (strong portfolio, final polish)",
+          "programme": "DSAI",
+          "specificity": 4,
+          "actionability": 5,
+          "programme_fit": 5,
+          "structure": 5,
+          "avg": 4.75,
+          "elapsed_s": 5.66
+        }
+      ],
+      "aggregate": {
+        "specificity": 4.0,
+        "actionability": 5.0,
+        "programme_fit": 5.0,
+        "structure": 5.0,
+        "overall_avg": 4.75,
+        "avg_elapsed_s": 5.47
+      }
+    }
+  },
+  "summary_table": [
+    {
+      "model":         "gpt-4o",
+      "specificity":   5.0,
+      "actionability": 4.67,
+      "programme_fit": 4.67,
+      "structure":     5.0,
+      "overall_avg":   4.75,
+      "avg_time_s":    4.52,
+      "selected":      true
+    },
+    {
+      "model":         "gpt-4o-mini",
+      "specificity":   4.0,
+      "actionability": 5.0,
+      "programme_fit": 5.0,
+      "structure":     5.0,
+      "overall_avg":   4.75,
+      "avg_time_s":    5.47,
+      "selected":      false
+    }
+  ],
+  "decision": {
+    "production_model": "gpt-4o",
+    "rationale": "Both models achieved identical overall average (4.75/5). GPT-4o selected because it is faster (4.52s vs 5.47s) and scored higher on specificity (5.0 vs 4.0) — the most critical dimension for portfolio advice, as advice must reference exact repo names, metrics, and percentages to be useful. GPT-4o-mini produces more generic phrasing in the advice body even when structure is correct.",
+    "cost_tradeoff": "GPT-4o is ~10x more expensive per token than GPT-4o-mini. Acceptable here because the career advisor is a low-frequency, high-value interaction (once per portfolio analysis, not per chat message).",
+    "note_on_claude": "Claude claude-sonnet-4-6 was designed into the experiment (compare_career_models.py) but excluded from production comparison due to a missing anthropic package in the evaluation environment. Based on Claude's known strengths in structured long-form writing, it is expected to match GPT-4o scores; re-evaluation with Claude is recommended when the anthropic package is available."
+  },
+  "experiment_config": {
+    "temperature": 0.3,
+    "max_tokens": 900,
+    "judge_temperature": 0,
+    "judge_max_tokens": 60,
+    "n_profiles": 3,
+    "n_models_tested": 2,
+    "date": "2026-06-16"
+  }
+}

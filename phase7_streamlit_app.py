@@ -75,6 +75,19 @@ except Exception as _e3:
     _FCAST_IMPORT_OK  = False
     _FCAST_IMPORT_ERR = str(_e3)
 
+# ── Product E: GitHub Career Advisor ──────────────────────────────────────────
+_CAREER_PKG = str(PROJECT_ROOT / "learning_analytics_xai" / "career")
+for _p in [_CAREER_PKG, _XAI_DASHBOARD]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+try:
+    from career_page import render_career_page as _render_career_page
+    _CAREER_IMPORT_OK  = True
+    _CAREER_IMPORT_ERR = ""
+except Exception as _e4:
+    _CAREER_IMPORT_OK  = False
+    _CAREER_IMPORT_ERR = str(_e4)
+
 st.set_page_config(
     page_title="Zewail City Campus Assistant",
     page_icon="🎓",
@@ -500,6 +513,38 @@ div[data-testid="column"] .stButton > button:hover {
 }
 
 /* ════════════════════════════════════════════════════════
+   CITATION BAR  (inline source pills inside chat bubble)
+════════════════════════════════════════════════════════ */
+.citation-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+    margin: 10px 0 2px; padding-top: 9px;
+    border-top: 1px solid rgba(139,92,246,.13);
+    font-size: .67rem;
+}
+.cite-pill {
+    background: rgba(139,92,246,.1); border: 1px solid rgba(139,92,246,.22);
+    border-radius: 100px; padding: 2px 10px;
+    color: #A78BFA; font-weight: 600; font-size: .67rem;
+    white-space: nowrap; overflow: hidden; max-width: 260px; text-overflow: ellipsis;
+    display: inline-block;
+}
+
+/* ════════════════════════════════════════════════════════
+   CONTACT CARD  (human escalation)
+════════════════════════════════════════════════════════ */
+.contact-card {
+    background: rgba(16,185,129,.06); border: 1px solid rgba(16,185,129,.25);
+    border-left: 3px solid #10B981; border-radius: 10px;
+    padding: 14px 18px; margin: 6px 0 4px;
+}
+.cc-header { font-weight:700; color:#34D399; font-size:.9rem; margin-bottom:3px; }
+.cc-role   { color:#6EE7B7; font-size:.73rem; margin-bottom:2px; }
+.cc-dept   { color:#6EE7B7; font-size:.73rem; margin-bottom:6px; }
+.cc-email  { font-size:.78rem; color:#A7F3D0; margin:3px 0; }
+.cc-loc    { font-size:.75rem; color:#6EE7B7; margin:3px 0; }
+.cc-hint   { font-size:.67rem; color:#065F46; margin-top:8px; }
+
+/* ════════════════════════════════════════════════════════
    PROFILE PILLS  (sidebar)
 ════════════════════════════════════════════════════════ */
 .ppill {
@@ -618,6 +663,9 @@ def init_state() -> None:
         st.session_state["_pending"] = None
     if "_last_audio_hash" not in st.session_state:
         st.session_state["_last_audio_hash"] = None
+    if "_session_id" not in st.session_state:
+        import uuid as _uuid
+        st.session_state["_session_id"] = str(_uuid.uuid4())[:8]
 
 
 # ── Header ─────────────────────────────────────────────────────────────────────
@@ -823,6 +871,106 @@ def render_suggestions(compact: bool = False) -> None:
 
 
 # ── Source cards ───────────────────────────────────────────────────────────────
+def _render_citation_bar(sources: list[dict]) -> None:
+    """Top-2 source pills rendered inside the chat bubble (Feature 5.1)."""
+    if not sources:
+        return
+    top = sorted(sources, key=lambda s: -s.get("score", 0))[:2]
+    pills = "".join(
+        f'<span class="cite-pill">'
+        f'{CAT_ICON.get(s.get("category", "general"), "📄")} '
+        f'{s["source"][:50]}{"…" if len(s["source"]) > 50 else ""}'
+        f'</span>'
+        for s in top
+    )
+    st.markdown(
+        f'<div class="citation-bar">'
+        f'<span style="color:#5B4D8A;margin-right:3px;font-size:.67rem">📎 Based on:</span>'
+        f'{pills}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_contact_card(contact: dict) -> None:
+    """Styled contact card for the escalation pathway (Feature 5.3)."""
+    role = f'<div class="cc-role">{contact["role"]}</div>' if contact.get("role") else ""
+    dept = f'<div class="cc-dept">🏛️ {contact["dept"]}</div>' if contact.get("dept") else ""
+    loc  = (f'<div class="cc-loc">📍 {contact["location"]}</div>'
+            if contact.get("location") else "")
+    st.markdown(
+        f'<div class="contact-card">'
+        f'<div class="cc-header">{contact.get("icon","🏢")} {contact["name"]}</div>'
+        f'{role}{dept}'
+        f'<div class="cc-email">📧 <a href="mailto:{contact["email"]}" '
+        f'style="color:#6EE7B7;text-decoration:none">{contact["email"]}</a></div>'
+        f'{loc}'
+        f'<div class="cc-hint">Click the email address to open your mail client.</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_message_actions(msg: dict) -> None:
+    """
+    👍 👎 + 'Still need help?' button row below each assistant message.
+    Handles thumb state persistence and the escalation contact card.
+    Features 5.3 + 5.6.
+    """
+    entry_id = msg.get("entry_id")
+    if not entry_id:
+        return
+
+    contact_key = msg.get("contact_key", "academic")
+    thumb_state = st.session_state.get(f"thumb_{entry_id}")
+    show_key    = f"show_esc_{entry_id}"
+
+    c_up, c_dn, c_esc, _ = st.columns([0.07, 0.07, 0.30, 0.56])
+
+    with c_up:
+        if st.button(
+            "👍", key=f"up_{entry_id}", help="This was helpful",
+            disabled=(thumb_state is not None),
+        ):
+            st.session_state[f"thumb_{entry_id}"] = "up"
+            try:
+                from feedback_logger import update_thumb as _ut
+                _ut(entry_id, "up")
+            except Exception:
+                pass
+            st.rerun()
+
+    with c_dn:
+        if st.button(
+            "👎", key=f"dn_{entry_id}", help="This wasn't helpful",
+            disabled=(thumb_state is not None),
+        ):
+            st.session_state[f"thumb_{entry_id}"] = "down"
+            try:
+                from feedback_logger import update_thumb as _ut
+                _ut(entry_id, "down")
+            except Exception:
+                pass
+            st.rerun()
+
+    with c_esc:
+        esc_label = "✕ Close" if st.session_state.get(show_key) else "🤝 Still need help?"
+        if st.button(esc_label, key=f"esc_{entry_id}"):
+            st.session_state[show_key] = not st.session_state.get(show_key, False)
+            st.rerun()
+
+    if thumb_state == "up":
+        st.caption("✓ Thanks for the feedback!")
+    elif thumb_state == "down":
+        st.caption("✓ Noted — flagged for admin review.")
+
+    if st.session_state.get(show_key):
+        try:
+            from campus_contacts import get_contact as _gc
+            _render_contact_card(_gc(contact_key))
+        except Exception:
+            pass
+
+
 def render_sources(sources: list[dict], elapsed: float) -> None:
     if not sources:
         return
@@ -883,6 +1031,7 @@ def render_chat(assistant) -> None:
                         unsafe_allow_html=True,
                     )
                 st.markdown(content)
+                _render_citation_bar(msg.get("sources", []))
 
             srcs = msg.get("sources", [])
             if srcs:
@@ -892,6 +1041,7 @@ def render_chat(assistant) -> None:
                     expanded=False,
                 ):
                     render_sources(srcs, msg.get("elapsed", 0))
+            _render_message_actions(msg)
 
             followups = msg.get("followups", [])
             if followups:
@@ -944,6 +1094,13 @@ def render_chat(assistant) -> None:
         return
 
     # ── Render new exchange live (streaming) ───────────────────────────────────
+    # Route question to the most relevant office contact before generating
+    try:
+        from campus_contacts import route_contact as _route
+        _contact_key = _route(question)
+    except Exception:
+        _contact_key = "academic"
+
     with st.chat_message("user", avatar="👤"):
         st.markdown(question)
 
@@ -972,11 +1129,19 @@ def render_chat(assistant) -> None:
 
             elapsed = time.time() - t0
 
+            # ── Inline citation bar (Feature 5.1) — inside bubble ─────────────
+            _src_list_inner = [
+                {"source": c.source, "page": c.page, "category": c.category,
+                 "score": c.score, "text": c.text}
+                for c in chunks
+            ]
+            _render_citation_bar(_src_list_inner)
+
         except Exception as exc:
             answer = f"**Error:** {exc}"
             st.markdown(answer)
 
-    # Sources (outside chat bubble)
+    # Sources expander (outside bubble)
     srcs = [
         {"source": c.source, "page": c.page, "category": c.category,
          "score": c.score, "text": c.text}
@@ -989,10 +1154,39 @@ def render_chat(assistant) -> None:
         ):
             render_sources(srcs, elapsed)
 
+    # ── Log query + render message actions (Features 5.3 + 5.6) ──────────────
+    clean_answer = _clean_answer(answer)
+    _max_score   = max((c.score for c in chunks), default=0.0)
+    _entry_id    = ""
+    try:
+        from feedback_logger import log_query as _lq
+        _entry_id = _lq(
+            question=question,
+            intent=getattr(getattr(assistant, "_rag", None), "_last_intent", "general"),
+            max_score=_max_score,
+            answer_preview=clean_answer,
+            session_id=st.session_state.get("_session_id", ""),
+            contact_key=_contact_key,
+        )
+    except Exception:
+        pass
+
+    _new_msg: dict = {
+        "role":        "assistant",
+        "content":     clean_answer,
+        "is_advisor":  _is_advisor_response(clean_answer),
+        "sources":     srcs,
+        "elapsed":     elapsed,
+        "followups":   [],
+        "entry_id":    _entry_id,
+        "contact_key": _contact_key,
+    }
+    _render_message_actions(_new_msg)
+
     # Follow-up suggestions
     followups: list[str] = []
     try:
-        followups = assistant._rag.suggest_followups(question, _clean_answer(answer), n=3)
+        followups = assistant._rag.suggest_followups(question, clean_answer, n=3)
     except Exception:
         pass
     if followups:
@@ -1008,16 +1202,9 @@ def render_chat(assistant) -> None:
                 st.rerun()
 
     # Persist to display history
-    clean_answer = _clean_answer(answer)
     msgs.append({"role": "user", "content": question})
-    msgs.append({
-        "role":       "assistant",
-        "content":    clean_answer,
-        "is_advisor": _is_advisor_response(clean_answer),
-        "sources":    srcs,
-        "elapsed":    elapsed,
-        "followups":  followups,
-    })
+    _new_msg["followups"] = followups
+    msgs.append(_new_msg)
     st.rerun()
 
 
@@ -1123,13 +1310,14 @@ def main() -> None:
             rag_ok = False
             err    = str(exc)
 
-    tab_chat, tab_analytics, tab_xai, tab_eval, tab_clust, tab_fcast = st.tabs([
+    tab_chat, tab_analytics, tab_xai, tab_eval, tab_clust, tab_fcast, tab_career = st.tabs([
         "💬  Chat",
         "📊  Analytics",
         "🧠  Learning Analytics & XAI",
         "🔬  RAG Evaluation",
         "🧩  Student Archetypes",
         "📈  GPA Forecast",
+        "💼  Career Advisor",
     ])
 
     with tab_chat:
@@ -1249,6 +1437,18 @@ def main() -> None:
             except Exception as _fe:
                 import traceback as _tb
                 st.error(f"**Forecasting error:** {_fe}")
+                st.code(_tb.format_exc(), language="python")
+
+    with tab_career:
+        if not _CAREER_IMPORT_OK:
+            st.error(f"**Career Advisor import failed:** {_CAREER_IMPORT_ERR}")
+        else:
+            try:
+                _oai = assistant._rag._oai_chat if rag_ok and assistant else None
+                _render_career_page(openai_client=_oai)
+            except Exception as _care:
+                import traceback as _tb
+                st.error(f"**Career Advisor error:** {_care}")
                 st.code(_tb.format_exc(), language="python")
 
 
