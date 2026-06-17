@@ -1,0 +1,5373 @@
+{
+  "metadata": {
+    "extracted_structure": {
+      "CSAI": {
+        "SWD": {
+          "_common": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2"
+          ],
+          "APD": [
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ],
+          "GCG": [
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ],
+          "HCI": [
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ]
+        },
+        "DSAI": {
+          "_common": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ]
+        },
+        "IT": {
+          "_common": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2"
+          ],
+          "ITNS": [
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ],
+          "ITCC": [
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ]
+        }
+      },
+      "BUS": {
+        "AARM": {
+          "_common": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ]
+        },
+        "FIM": {
+          "_common": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ]
+        },
+        "MEIM": {
+          "_common": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ]
+        },
+        "OSCTM": {
+          "_common": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ]
+        }
+      },
+      "SCI": {
+        "FY": {
+          "_common": [
+            "Y1S1",
+            "Y1S2"
+          ]
+        },
+        "BMS": {
+          "_common": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer"
+          ],
+          "CBG": [
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y4S1",
+            "Y4S2"
+          ],
+          "MCB": [
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y4S1",
+            "Y4S2"
+          ],
+          "DDD": [
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y4S1",
+            "Y4S2"
+          ],
+          "MED": [
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y4S1",
+            "Y4S2"
+          ]
+        },
+        "NANO": {
+          "_common": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2"
+          ],
+          "NMED": [
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ],
+          "NPHY": [
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ],
+          "BIONANO": [
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ],
+          "NCHEM": [
+            "Y2S1",
+            "Y2S2",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ]
+        },
+        "PHY": {
+          "_common": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y4S1",
+            "Y4S2"
+          ],
+          "AST": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y4S1",
+            "Y4S2"
+          ],
+          "HEP": [
+            "Y1S1",
+            "Y1S2",
+            "Y2S1",
+            "Y2S2",
+            "Y3S1",
+            "Y3S2",
+            "Y3Summer",
+            "Y4S1",
+            "Y4S2"
+          ]
+        }
+      }
+    },
+    "total_unique_course_codes": 317,
+    "codes_in_courses_json": 110,
+    "codes_not_in_courses_json": 207,
+    "missing_codes_sample": [
+      "BACT 301",
+      "BACT 305",
+      "BACT 310",
+      "BACT 401",
+      "BACT 402",
+      "BACT 403",
+      "BCSE 301",
+      "BCSE 401",
+      "BDAT 301",
+      "BDAT 401",
+      "BENT 301",
+      "BENT 305",
+      "BENT 310",
+      "BENT 401",
+      "BGEN 101",
+      "BGEN 105",
+      "BGEN 110",
+      "BGEN 201",
+      "BGEN 205",
+      "BGEN 210",
+      "BIFT 301",
+      "BLAW 201",
+      "BLAW 301",
+      "BMAT 301",
+      "BMS 201",
+      "BMS 202",
+      "BMS 203",
+      "BMS 204",
+      "BMS 205",
+      "BMS 211"
+    ],
+    "notes": [
+      "ENGR curricula PDF not available — no ENGR plans",
+      "SCI/FY/_common contains Foundation Year Y1S1/Y1S2 (shared by all SCI programmes)",
+      "BUS FIM/MEIM/OSCTM: Y1-Y2 propagated from AARM (shared school requirements)",
+      "CSAI DSAI/IT: Y1S1 propagated from SWD (same Foundation)",
+      "BMS MED/Y2S2 copied from MCB (same courses for both concentrations in Y2)"
+    ]
+  },
+  "plans": {
+    "CSAI": {
+      "SWD": {
+        "full_name": "Software Development",
+        "tracks": {
+          "_common": {
+            "full_name": "Common (all tracks)",
+            "semesters": {
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "CSAI 100",
+                    "name": "Introduction to Computational Sciences and AI",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CSAI 101",
+                    "name": "Fundamentals of Programming and Computer Science",
+                    "credits": 2
+                  },
+                  {
+                    "code": "CSAI 102",
+                    "name": "Digital Logic and Computer Architecture",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 252",
+                    "name": "Introduction to Computer Networks",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 156",
+                    "name": "Technical English 1",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 103",
+                    "name": "Calculus for Computational Sciences",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 163",
+                    "name": "Sustainability, Social and Ethical Issues in Computing",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              },
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "CSAI 151",
+                    "name": "Object‐Oriented Programming",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 157",
+                    "name": "Technical English 2",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 104",
+                    "name": "Linear Algebra",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 103",
+                    "name": "Physics 1",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 151",
+                    "name": "Computer Architecture and Organization",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 14
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "CSAI 201",
+                    "name": "Data Structures",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 202",
+                    "name": "Introduction to Database Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 203",
+                    "name": "Introduction to Software Engineering",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATH 105",
+                    "name": "Probability and Statistics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 104",
+                    "name": "Physics 2",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 261",
+                    "name": "Engineering Project Management",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "CSAI 204",
+                    "name": "Operating Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 251",
+                    "name": "Algorithm Design and Analysis",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 253",
+                    "name": "Machine Learning",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATH 205",
+                    "name": "Discrete Mathematics for Computational Sciences",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 264",
+                    "name": "Introduction to Entrepreneurship and Small Business Management",
+                    "credits": 2
+                  },
+                  {
+                    "code": "SW 251",
+                    "name": "User Experience and Interaction Design",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 17
+              }
+            }
+          },
+          "APD": {
+            "full_name": "Application Development",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "CSAI 301",
+                    "name": "Artificial Intelligence",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 252",
+                    "name": "Embedded Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 301",
+                    "name": "Object-Oriented Analysis and Design",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 302",
+                    "name": "User Interface Development",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWAPD 301",
+                    "name": "Software Systems Requirements Development",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 15
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "CSAI 302",
+                    "name": "Advanced Database Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 351",
+                    "name": "Principles and Practices for Secure Computing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATH 307",
+                    "name": "Numerical Methods",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWAPD 351",
+                    "name": "Software Architecture and Design",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWAPD 352",
+                    "name": "Web Applications Development",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 15
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "CSAI 399",
+                    "name": "Internship",
+                    "credits": 4
+                  }
+                ],
+                "total_credits": 4
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "CSAI 498",
+                    "name": "Senior Project - Part 1",
+                    "credits": 1
+                  },
+                  {
+                    "code": "SW 401",
+                    "name": "Parallel and Distributed Computing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 402",
+                    "name": "Software Project Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWAPD 401",
+                    "name": "Software Testing, Validation, and Quality Assurance",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWAPD 402",
+                    "name": "Mobile Application Development",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 13
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "CSAI 499",
+                    "name": "Senior Project - Part 2",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWAPD 452",
+                    "name": "Enterprise Application Development",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWAPD 453",
+                    "name": "IoT Applications Development",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              }
+            }
+          },
+          "GCG": {
+            "full_name": "Gaming and Computer Graphics",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "CSAI 301",
+                    "name": "Artificial Intelligence",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 252",
+                    "name": "Embedded Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 301",
+                    "name": "Object-Oriented Analysis and Design",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 302",
+                    "name": "User Interface Development",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWGCG 301",
+                    "name": "Computer Graphics and Multimedia Systems",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 15
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "CSAI 351",
+                    "name": "Principles and Practices for Secure Computing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATH 307",
+                    "name": "Numerical Methods",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWGCG 351",
+                    "name": "Game Design and Development",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWGCG 352",
+                    "name": "Computer and Physics-Based Animation",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "CSAI 399",
+                    "name": "Internship",
+                    "credits": 4
+                  }
+                ],
+                "total_credits": 4
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "CSAI 498",
+                    "name": "Senior Project - Part 1",
+                    "credits": 1
+                  },
+                  {
+                    "code": "SW 401",
+                    "name": "Parallel and Distributed Computing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 402",
+                    "name": "Software Project Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWGCG 401",
+                    "name": "Design and Geometric Modeling for Visualization and Communication",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWGCG 402",
+                    "name": "Visual Effects Production",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 13
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "CSAI 499",
+                    "name": "Senior Project - Part 2",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWGCG 451",
+                    "name": "Model Creation and Character Animation",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWGCG 452",
+                    "name": "Physics-Based Vision and Rendering",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWGCG 453",
+                    "name": "Mobile and Casual Game Development",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              }
+            }
+          },
+          "HCI": {
+            "full_name": "Human Computer Interaction",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "CSAI 301",
+                    "name": "Artificial Intelligence",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 273",
+                    "name": "Cognitive Psychology",
+                    "credits": 2
+                  },
+                  {
+                    "code": "SW 252",
+                    "name": "Embedded Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 301",
+                    "name": "Object-Oriented Analysis and Design",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 302",
+                    "name": "User Interface Development",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWHCI 301",
+                    "name": "Prototyping Algorithmic Experiences",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "CSAI 351",
+                    "name": "Principles and Practices for Secure Computing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATH 307",
+                    "name": "Numerical Methods",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWHCI 351",
+                    "name": "Statistical Graphics and Visualization",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWHCI 352",
+                    "name": "User-Focused Sensing Systems",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "CSAI 399",
+                    "name": "Internship",
+                    "credits": 4
+                  }
+                ],
+                "total_credits": 4
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "CSAI 498",
+                    "name": "Senior Project - Part 1",
+                    "credits": 1
+                  },
+                  {
+                    "code": "SW 401",
+                    "name": "Parallel and Distributed Computing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SW 402",
+                    "name": "Software Project Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWHCI 401",
+                    "name": "Human Information Processing and Artificial Intelligence",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWHCI 402",
+                    "name": "AI Based Products and Services",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 13
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "CSAI 499",
+                    "name": "Senior Project - Part 2",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWHCI 451",
+                    "name": "Cognitive Modeling for HCI",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWHCI 452",
+                    "name": "Designing Extended Reality Experience",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SWHCI 453",
+                    "name": "Human Factors",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              }
+            }
+          }
+        }
+      },
+      "DSAI": {
+        "full_name": "Data Science and Artificial Intelligence",
+        "tracks": {
+          "_common": {
+            "full_name": "_common",
+            "semesters": {
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "CSAI 151",
+                    "name": "Object‐Oriented Programming",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 103",
+                    "name": "Data acquisition in data science (ETL)",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 104",
+                    "name": "Knowledge Representation and Reasoning",
+                    "credits": 2
+                  },
+                  {
+                    "code": "ENGL 157",
+                    "name": "Technical English 2",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 104",
+                    "name": "Linear Algebra",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 13
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "CSAI 201",
+                    "name": "Data Structures",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 202",
+                    "name": "Introduction to Database Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 205",
+                    "name": "Fundamentals of Circuits and Electronics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 203",
+                    "name": "Data Integration and Visualization",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATH 105",
+                    "name": "Probability and Statistics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 261",
+                    "name": "Engineering Project Management",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "CSAI 251",
+                    "name": "Algorithm Design and Analysis",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 253",
+                    "name": "Machine Learning",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 201",
+                    "name": "Data Mining and Information Retrieval",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 202",
+                    "name": "Data Governance",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 205",
+                    "name": "Discrete Mathematics for Computational Sciences",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 264",
+                    "name": "Introduction to Entrepreneurship and Small Business Management",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              },
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "CSAI 203",
+                    "name": "Introduction to Software Engineering",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 301",
+                    "name": "Artificial Intelligence",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 307",
+                    "name": "Statistical Inference",
+                    "credits": 2
+                  },
+                  {
+                    "code": "DSAI 308",
+                    "name": "Deep Learning",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATH 303",
+                    "name": "Linear and Non-linear Programming for Computational Sciences",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 14
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "CSAI 351",
+                    "name": "Principles and Practices for Secure Computing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 305",
+                    "name": "Interpretability & Explainability in AI",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 325",
+                    "name": "Introduction to Information Theory",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 352",
+                    "name": "Computer Vision",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 353",
+                    "name": "Natural language processing",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 15
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "CSAI 399",
+                    "name": "Internship",
+                    "credits": 4
+                  }
+                ],
+                "total_credits": 4
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "CSAI 302",
+                    "name": "Advanced Database Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 498",
+                    "name": "Senior Project - Part 1",
+                    "credits": 1
+                  },
+                  {
+                    "code": "DSAI 402",
+                    "name": "Reinforcement Learning",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 403",
+                    "name": "Nature inspired computation",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 456",
+                    "name": "Speech recognition",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 13
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "CSAI 499",
+                    "name": "Senior Project - Part 2",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 406",
+                    "name": "Machine Learning Engineering for Production (MLOps)",
+                    "credits": 3
+                  },
+                  {
+                    "code": "DSAI 427",
+                    "name": "Big Data Analytics",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "CSAI 100",
+                    "name": "Introduction to Computational Sciences and AI",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CSAI 101",
+                    "name": "Fundamentals of Programming and Computer Science",
+                    "credits": 2
+                  },
+                  {
+                    "code": "CSAI 102",
+                    "name": "Digital Logic and Computer Architecture",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 252",
+                    "name": "Introduction to Computer Networks",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 156",
+                    "name": "Technical English 1",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 103",
+                    "name": "Calculus for Computational Sciences",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 163",
+                    "name": "Sustainability, Social and Ethical Issues in Computing",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              }
+            }
+          }
+        }
+      },
+      "IT": {
+        "full_name": "Information Technology",
+        "tracks": {
+          "_common": {
+            "full_name": "_common",
+            "semesters": {
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "CSAI 151",
+                    "name": "Object‐Oriented Programming",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 157",
+                    "name": "Technical English 2",
+                    "credits": 2
+                  },
+                  {
+                    "code": "IT 101",
+                    "name": "Shell and Script Programming with UNIX",
+                    "credits": 2
+                  },
+                  {
+                    "code": "IT 102",
+                    "name": "Ethical Hacking and Defense",
+                    "credits": 2
+                  },
+                  {
+                    "code": "IT 103",
+                    "name": "Fundamentals of Information and Communication Systems",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 104",
+                    "name": "Linear Algebra",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 14
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "CSAI 201",
+                    "name": "Data Structures",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 202",
+                    "name": "Introduction to Database Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 205",
+                    "name": "Fundamentals of Circuits and Electronics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "IT 205",
+                    "name": "Enterprise System Architecture",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 105",
+                    "name": "Probability and Statistics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 261",
+                    "name": "Engineering Project Management",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "CSAI 204",
+                    "name": "Operating Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 251",
+                    "name": "Algorithm Design and Analysis",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 253",
+                    "name": "Machine Learning",
+                    "credits": 3
+                  },
+                  {
+                    "code": "IT 206",
+                    "name": "Fundamentals of IT Governance and Risk Management",
+                    "credits": 2
+                  },
+                  {
+                    "code": "IT 220",
+                    "name": "Networks installation and Maintenance",
+                    "credits": 2
+                  },
+                  {
+                    "code": "IT 222",
+                    "name": "Fundamentals of Multimedia Creation, Storage and Transfer",
+                    "credits": 2
+                  },
+                  {
+                    "code": "SCH 264",
+                    "name": "Introduction to Entrepreneurship and Small Business Management",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "CSAI 100",
+                    "name": "Introduction to Computational Sciences and AI",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CSAI 101",
+                    "name": "Fundamentals of Programming and Computer Science",
+                    "credits": 2
+                  },
+                  {
+                    "code": "CSAI 102",
+                    "name": "Digital Logic and Computer Architecture",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 252",
+                    "name": "Introduction to Computer Networks",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 156",
+                    "name": "Technical English 1",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 103",
+                    "name": "Calculus for Computational Sciences",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 163",
+                    "name": "Sustainability, Social and Ethical Issues in Computing",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              }
+            }
+          },
+          "ITNS": {
+            "full_name": "Networks, Security and Governance",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "CSAI 203",
+                    "name": "Introduction to Software Engineering",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 301",
+                    "name": "Artificial Intelligence",
+                    "credits": 3
+                  },
+                  {
+                    "code": "IT 308",
+                    "name": "Cloud Computing Architecture",
+                    "credits": 2
+                  },
+                  {
+                    "code": "ITNS 301",
+                    "name": "Network Administration",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 205",
+                    "name": "Discrete Mathematics for Computational Sciences",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 13
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "CSAI 351",
+                    "name": "Principles and Practices for Secure Computing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "IT 309",
+                    "name": "IT User-Experience Design",
+                    "credits": 3
+                  },
+                  {
+                    "code": "IT 310",
+                    "name": "Foundations of Cybersecurity and Security Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ITNS 302",
+                    "name": "IoT Systems and Application Development",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "CSAI 399",
+                    "name": "Internship",
+                    "credits": 4
+                  }
+                ],
+                "total_credits": 4
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "CSAI 498",
+                    "name": "Senior Project - Part 1",
+                    "credits": 1
+                  },
+                  {
+                    "code": "IT 402",
+                    "name": "Fundamentals of Cybersecurity and Encryption",
+                    "credits": 3
+                  },
+                  {
+                    "code": "IT 411",
+                    "name": "Enterprise Resources Planning",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ITNS 403",
+                    "name": "Storage Area Networks",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ITNS 406",
+                    "name": "Network Resilience and Hardening",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 13
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "CSAI 499",
+                    "name": "Senior Project - Part 2",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ITNS 407",
+                    "name": "IT Audit and Risk Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ITNS 408",
+                    "name": "Network Security",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              }
+            }
+          },
+          "ITCC": {
+            "full_name": "Infrastructure and Cloud Computing",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "CSAI 203",
+                    "name": "Introduction to Software Engineering",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CSAI 301",
+                    "name": "Artificial Intelligence",
+                    "credits": 3
+                  },
+                  {
+                    "code": "IT 308",
+                    "name": "Cloud Computing Architecture",
+                    "credits": 2
+                  },
+                  {
+                    "code": "ITCC 301",
+                    "name": "Linux System Administration",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 205",
+                    "name": "Discrete Mathematics for Computational Sciences",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 13
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "CSAI 351",
+                    "name": "Principles and Practices for Secure Computing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "IT 309",
+                    "name": "IT User-Experience Design",
+                    "credits": 3
+                  },
+                  {
+                    "code": "IT 310",
+                    "name": "Foundations of Cybersecurity and Security Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ITCC 302",
+                    "name": "Cloud Infrastructure Administration",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "CSAI 399",
+                    "name": "Internship",
+                    "credits": 4
+                  }
+                ],
+                "total_credits": 4
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "CSAI 498",
+                    "name": "Senior Project - Part 1",
+                    "credits": 1
+                  },
+                  {
+                    "code": "IT 402",
+                    "name": "Fundamentals of Cybersecurity and Encryption",
+                    "credits": 3
+                  },
+                  {
+                    "code": "IT 411",
+                    "name": "Enterprise Resources Planning",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ITCC 403",
+                    "name": "Security Testing for Cloud Applications",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ITCC 405",
+                    "name": "Virtualization and Cloud Security",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 13
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "CSAI 499",
+                    "name": "Senior Project - Part 2",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ITCC 407",
+                    "name": "Cloud Services Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ITCC 408",
+                    "name": "Application Development and Scripting in the Cloud",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              }
+            }
+          }
+        }
+      }
+    },
+    "BUS": {
+      "AARM": {
+        "full_name": "Actuarial Analysis and Risk Management",
+        "tracks": {
+          "_common": {
+            "full_name": "_common",
+            "semesters": {
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "BGEN 101",
+                    "name": "Business Mathematics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ECON 101",
+                    "name": "Principles of Economics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 154",
+                    "name": "Business English 1",
+                    "credits": 2
+                  },
+                  {
+                    "code": "FINC 101",
+                    "name": "Financial Accounting",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 101",
+                    "name": "Principles of Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 105",
+                    "name": "Critical Thinking",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              },
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "BGEN 105",
+                    "name": "Calculus for Business Applications",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 155",
+                    "name": "Business English 2",
+                    "credits": 2
+                  },
+                  {
+                    "code": "FINC 201",
+                    "name": "Principles of Finance",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 105",
+                    "name": "Leadership and Professional Ethics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MKTG 101",
+                    "name": "Principles of Marketing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 110",
+                    "name": "Creativity and Innovation",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "BGEN 110",
+                    "name": "Foundations of Statistical Inference",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BGEN 210",
+                    "name": "Programming",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BLAW 201",
+                    "name": "Business Law fundamentals",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 201",
+                    "name": "Human Resources Management",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "BGEN 201",
+                    "name": "Data Analytics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BGEN 205",
+                    "name": "Machine Learning",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 205",
+                    "name": "Project Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCHN 201",
+                    "name": "Supply Chain Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SUST 201",
+                    "name": "Sustainable Development Goals Fundamentals",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 15
+              },
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "BACT 301",
+                    "name": "Principles of Risk Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BACT 305",
+                    "name": "Life Contingencies",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ECON 301",
+                    "name": "Intermediate Microeconomic Theory",
+                    "credits": 3
+                  },
+                  {
+                    "code": "FINC 315",
+                    "name": "Financial Markets, Institutions and Economic Activity",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "BACT 310",
+                    "name": "Introduction to Actuarial Practice",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BDAT 301",
+                    "name": "Applied Linear Models",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMAT 301",
+                    "name": "Introduction to Differential Equations",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ECON 305",
+                    "name": "Intermediate Macroeconomic Theory",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "BUS 399",
+                    "name": "Internship",
+                    "credits": 0
+                  }
+                ],
+                "total_credits": 0
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "BACT 401",
+                    "name": "Risk Financing Techniques",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BACT 402",
+                    "name": "Risk Analytics and Behavioral Science",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BACT 403",
+                    "name": "Commercial Insurance and Management of Insurance Enterprise",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "BDAT 401",
+                    "name": "Stochastic Processes",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BUS 499",
+                    "name": "Capstone Project",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 6
+              }
+            }
+          }
+        }
+      },
+      "FIM": {
+        "full_name": "Finance and Investment Management",
+        "tracks": {
+          "_common": {
+            "full_name": "_common",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "ECON 310",
+                    "name": "Intermediate Microeconomic Theory",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ECON 315",
+                    "name": "Intermediate Macroeconomic Theory",
+                    "credits": 3
+                  },
+                  {
+                    "code": "FINC 305",
+                    "name": "Financial Reporting",
+                    "credits": 3
+                  },
+                  {
+                    "code": "FINC 310",
+                    "name": "Corporate Finance",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "BIFT 301",
+                    "name": "Database Management Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ECON 320",
+                    "name": "Money and Banking",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ECON 325",
+                    "name": "Data Analysis & Forecasting",
+                    "credits": 3
+                  },
+                  {
+                    "code": "FINC 315",
+                    "name": "Financial Markets, Institutions and Economic Activity",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "BUS 399",
+                    "name": "Internship",
+                    "credits": 0
+                  }
+                ],
+                "total_credits": 0
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "FINC 401",
+                    "name": "Investment Theory",
+                    "credits": 3
+                  },
+                  {
+                    "code": "FINC 405",
+                    "name": "Derivative Securities",
+                    "credits": 3
+                  },
+                  {
+                    "code": "FINC 410",
+                    "name": "Fixed Income Securities",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "BCSE 401",
+                    "name": "Data Mining & Predictive Analytics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BUS 499",
+                    "name": "Capstone Project",
+                    "credits": 3
+                  },
+                  {
+                    "code": "FINC 415",
+                    "name": "Blockchain and Digital Currencies",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "BGEN 101",
+                    "name": "Business Mathematics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ECON 101",
+                    "name": "Principles of Economics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 154",
+                    "name": "Business English 1",
+                    "credits": 2
+                  },
+                  {
+                    "code": "FINC 101",
+                    "name": "Financial Accounting",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 101",
+                    "name": "Principles of Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 105",
+                    "name": "Critical Thinking",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              },
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "BGEN 105",
+                    "name": "Calculus for Business Applications",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 155",
+                    "name": "Business English 2",
+                    "credits": 2
+                  },
+                  {
+                    "code": "FINC 201",
+                    "name": "Principles of Finance",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 105",
+                    "name": "Leadership and Professional Ethics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MKTG 101",
+                    "name": "Principles of Marketing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 110",
+                    "name": "Creativity and Innovation",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "BGEN 110",
+                    "name": "Foundations of Statistical Inference",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BGEN 210",
+                    "name": "Programming",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BLAW 201",
+                    "name": "Business Law fundamentals",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 201",
+                    "name": "Human Resources Management",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "BGEN 201",
+                    "name": "Data Analytics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BGEN 205",
+                    "name": "Machine Learning",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 205",
+                    "name": "Project Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCHN 201",
+                    "name": "Supply Chain Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SUST 201",
+                    "name": "Sustainable Development Goals Fundamentals",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 15
+              }
+            }
+          }
+        }
+      },
+      "MEIM": {
+        "full_name": "Marketing, Entrepreneurship and Innovation Management",
+        "tracks": {
+          "_common": {
+            "full_name": "_common",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "BENT 301",
+                    "name": "Advanced and Corporate Entrepreneurship",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BENT 305",
+                    "name": "Entrepreneurial Finance",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BTEM 301",
+                    "name": "Management of Innovation",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MKTG 301",
+                    "name": "Market research and consumer behavior",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "BENT 310",
+                    "name": "Digital Start-Ups and Ecosystems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BTEM 305",
+                    "name": "Technology Commercialization",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MKTG 305",
+                    "name": "Strategic and B2B Marketing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MKTG 310",
+                    "name": "Brand and sales Management",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "BUS 399",
+                    "name": "Internship",
+                    "credits": 0
+                  }
+                ],
+                "total_credits": 0
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "BENT 401",
+                    "name": "Social Entrepreneurship and sustainability",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MKTG 401",
+                    "name": "Marketing Communications",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MKTG 410",
+                    "name": "Product Management",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "BUS 499",
+                    "name": "Capstone Project",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MKTG 405",
+                    "name": "Digital Marketing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MKTG 415",
+                    "name": "Marketing Analytics",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "BGEN 101",
+                    "name": "Business Mathematics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ECON 101",
+                    "name": "Principles of Economics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 154",
+                    "name": "Business English 1",
+                    "credits": 2
+                  },
+                  {
+                    "code": "FINC 101",
+                    "name": "Financial Accounting",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 101",
+                    "name": "Principles of Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 105",
+                    "name": "Critical Thinking",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              },
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "BGEN 105",
+                    "name": "Calculus for Business Applications",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 155",
+                    "name": "Business English 2",
+                    "credits": 2
+                  },
+                  {
+                    "code": "FINC 201",
+                    "name": "Principles of Finance",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 105",
+                    "name": "Leadership and Professional Ethics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MKTG 101",
+                    "name": "Principles of Marketing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 110",
+                    "name": "Creativity and Innovation",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "BGEN 110",
+                    "name": "Foundations of Statistical Inference",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BGEN 210",
+                    "name": "Programming",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BLAW 201",
+                    "name": "Business Law fundamentals",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 201",
+                    "name": "Human Resources Management",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "BGEN 201",
+                    "name": "Data Analytics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BGEN 205",
+                    "name": "Machine Learning",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 205",
+                    "name": "Project Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCHN 201",
+                    "name": "Supply Chain Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SUST 201",
+                    "name": "Sustainable Development Goals Fundamentals",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 15
+              }
+            }
+          }
+        }
+      },
+      "OSCTM": {
+        "full_name": "Operations, Supply Chain and Technology Management",
+        "tracks": {
+          "_common": {
+            "full_name": "_common",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "BCSE 301",
+                    "name": "Database Management and Applications",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BLAW 301",
+                    "name": "Negotiations and Dispute Settlement",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 301",
+                    "name": "Operations Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCHN 305",
+                    "name": "Models and Business Simulations",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "MGMT 305",
+                    "name": "Advanced Organizational Behavior",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 310",
+                    "name": "General Management Processes/Change",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCHN 301",
+                    "name": "Information Technology Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 311",
+                    "name": "Quantitative Methods for Business",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "BUS 399",
+                    "name": "Internship",
+                    "credits": 0
+                  }
+                ],
+                "total_credits": 0
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "SCHN 401",
+                    "name": "Production Planning Procurement and Supply Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCHN 405",
+                    "name": "Logistics Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCHN 410",
+                    "name": "Information Technology in Supply Chains",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "BUS 499",
+                    "name": "Capstone Project",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 401",
+                    "name": "HR Data Analytics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 405",
+                    "name": "Performance, Compensation and Career Management",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "BGEN 101",
+                    "name": "Business Mathematics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ECON 101",
+                    "name": "Principles of Economics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 154",
+                    "name": "Business English 1",
+                    "credits": 2
+                  },
+                  {
+                    "code": "FINC 101",
+                    "name": "Financial Accounting",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 101",
+                    "name": "Principles of Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 105",
+                    "name": "Critical Thinking",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              },
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "BGEN 105",
+                    "name": "Calculus for Business Applications",
+                    "credits": 3
+                  },
+                  {
+                    "code": "ENGL 155",
+                    "name": "Business English 2",
+                    "credits": 2
+                  },
+                  {
+                    "code": "FINC 201",
+                    "name": "Principles of Finance",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 105",
+                    "name": "Leadership and Professional Ethics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MKTG 101",
+                    "name": "Principles of Marketing",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCH 110",
+                    "name": "Creativity and Innovation",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 16
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "BGEN 110",
+                    "name": "Foundations of Statistical Inference",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BGEN 210",
+                    "name": "Programming",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BLAW 201",
+                    "name": "Business Law fundamentals",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 201",
+                    "name": "Human Resources Management",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "BGEN 201",
+                    "name": "Data Analytics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BGEN 205",
+                    "name": "Machine Learning",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MGMT 205",
+                    "name": "Project Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SCHN 201",
+                    "name": "Supply Chain Management",
+                    "credits": 3
+                  },
+                  {
+                    "code": "SUST 201",
+                    "name": "Sustainable Development Goals Fundamentals",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 15
+              }
+            }
+          }
+        }
+      }
+    },
+    "SCI": {
+      "FY": {
+        "full_name": "Foundation Year",
+        "tracks": {
+          "_common": {
+            "full_name": "_common",
+            "semesters": {
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "BIOL 101",
+                    "name": "Biology I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 111",
+                    "name": "Biology I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 101",
+                    "name": "Chemistry I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 111",
+                    "name": "Chemistry I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 152",
+                    "name": "Effective Speaking and Composition",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 101",
+                    "name": "Calculus I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 101",
+                    "name": "Introduction to Classical Mechanics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 111",
+                    "name": "Introduction to Classical Mechanics Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "BIOL 102",
+                    "name": "Biology II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 112",
+                    "name": "Biology II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 102",
+                    "name": "Chemistry II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 112",
+                    "name": "Chemistry II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 153",
+                    "name": "Scientific Writing",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 102",
+                    "name": "Calculus II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 102",
+                    "name": "Introduction to Electromagnetism",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 112",
+                    "name": "Introduction to Electromagnetism Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              }
+            }
+          }
+        }
+      },
+      "BMS": {
+        "full_name": "Biomedical Sciences",
+        "tracks": {
+          "_common": {
+            "full_name": "_common",
+            "semesters": {
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "BMS 201",
+                    "name": "General Microbiology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 202",
+                    "name": "Cell Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 211",
+                    "name": "General Microbiology Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "BMS 212",
+                    "name": "Cell Biology Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 201",
+                    "name": "Organic Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 211",
+                    "name": "Organic Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CSCI 101",
+                    "name": "Introduction to Computer Science",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 14
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "BMS 203",
+                    "name": "Principles of Genetics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 204",
+                    "name": "Biochemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 213",
+                    "name": "Principles of Genetics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "BMS 214",
+                    "name": "Biochemistry Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 8
+              },
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "BMS 304",
+                    "name": "Biomedical Scientific Ethics & Safety",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 2
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "BMS 303",
+                    "name": "Experimental Design and Data Analysis",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 3
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "BMS 399",
+                    "name": "Internship",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 2
+              },
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "BIOL 101",
+                    "name": "Biology I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 111",
+                    "name": "Biology I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 101",
+                    "name": "Chemistry I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 111",
+                    "name": "Chemistry I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 152",
+                    "name": "Effective Speaking and Composition",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 101",
+                    "name": "Calculus I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 101",
+                    "name": "Introduction to Classical Mechanics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 111",
+                    "name": "Introduction to Classical Mechanics Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "BIOL 102",
+                    "name": "Biology II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 112",
+                    "name": "Biology II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 102",
+                    "name": "Chemistry II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 112",
+                    "name": "Chemistry II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 153",
+                    "name": "Scientific Writing",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 102",
+                    "name": "Calculus II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 102",
+                    "name": "Introduction to Electromagnetism",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 112",
+                    "name": "Introduction to Electromagnetism Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              }
+            }
+          },
+          "CBG": {
+            "full_name": "Computational Biology and Genomics",
+            "semesters": {
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "CHEM 202",
+                    "name": "Analytical and Physical Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 212",
+                    "name": "Analytical and Physical Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "MATH 201",
+                    "name": "Linear Algebra and Vector Geometry",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 7
+              },
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "BMS 321",
+                    "name": "Programming for Computational Biology",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 3
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "BMS 320",
+                    "name": "Introduction to Bioinformatics and Programming Language",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 331",
+                    "name": "Numerical Analysis and Matlab",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 322",
+                    "name": "Structural Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 323",
+                    "name": "Comparative Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 328",
+                    "name": "Computer Science 2",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 364",
+                    "name": "Biophysics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATH 308",
+                    "name": "Discrete Mathematics",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 21
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "BMS 401",
+                    "name": "Senior Project I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 473",
+                    "name": "Foundations of Computational and Systems Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 474",
+                    "name": "Genomics and Data Sciences",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "BMS 402",
+                    "name": "Senior Project II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 422",
+                    "name": "Algorithmic Foundations of Computational Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 426",
+                    "name": "Developmental Biology and Genetics",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              }
+            }
+          },
+          "MCB": {
+            "full_name": "Molecular Cell Biology",
+            "semesters": {
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "BMS 205",
+                    "name": "Human Physiology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 215",
+                    "name": "Human Physiology Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 202",
+                    "name": "Analytical and Physical Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 212",
+                    "name": "Analytical and Physical Chemistry Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 8
+              },
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "BMS 301",
+                    "name": "Molecular Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 311",
+                    "name": "Molecular Biology Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 4
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "BMS 324",
+                    "name": "Molecular Genetics and Cell Regulation",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 340",
+                    "name": "Advanced Techniques in BMS",
+                    "credits": 4
+                  },
+                  {
+                    "code": "BMS 320",
+                    "name": "Introduction to Bioinformatics and Programming Language",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 323",
+                    "name": "Comparative Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 326",
+                    "name": "Molecular Mechanisms of Cell Signaling",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 327",
+                    "name": "Neurobiology and Practicum",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 336",
+                    "name": "Stem Cells and Regenerative Medicine and Practicum",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 337",
+                    "name": "Cancer Biology and Practicum",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 25
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "BMS 401",
+                    "name": "Senior Project I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 364",
+                    "name": "Biophysics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 434",
+                    "name": "Epigenetics in Health and Disease",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 475",
+                    "name": "Biochemistry of Hormones and Vitamins",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 477",
+                    "name": "The Human Genome and Disease",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 15
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "BMS 402",
+                    "name": "Senior Project II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 322",
+                    "name": "Structural Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 429",
+                    "name": "Molecular Immunology and Practicum",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              }
+            }
+          },
+          "DDD": {
+            "full_name": "Drug Design and Development",
+            "semesters": {
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "BMS 205",
+                    "name": "Human Physiology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 215",
+                    "name": "Human Physiology Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 203",
+                    "name": "Organic Chemistry II",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 7
+              },
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "BMS 332",
+                    "name": "Drug Discovery and Development",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 334",
+                    "name": "Pharmacokinetics & Pharmacodynamics",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 6
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "BMS 333",
+                    "name": "Drug Design and Computational Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 339",
+                    "name": "Principles of Pharmacology and Toxicology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 343",
+                    "name": "Drug Design and Computational Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "BMS 349",
+                    "name": "Principles of Pharmacology and Toxicology Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 202",
+                    "name": "Analytical and Physical Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 212",
+                    "name": "Analytical and Physical Chemistry and Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "BMS 401",
+                    "name": "Senior Project 1",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 405",
+                    "name": "Medicinal and Biological Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 415",
+                    "name": "Medicinal and Biological Chemistry lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "BMS 435",
+                    "name": "Legal aspects in drug design and development",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 8
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "BMS 402",
+                    "name": "Senior Project II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 406",
+                    "name": "Molecular Modeling and Targeted Drug Design",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 416",
+                    "name": "Molecular Modeling and Targeted Drug Design lab.",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 7
+              }
+            }
+          },
+          "MED": {
+            "full_name": "Medical Sciences",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "BMS 325",
+                    "name": "Clinical Sciences and Practicum",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 344",
+                    "name": "Human Embryology and practicum",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 6
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "BMS 313",
+                    "name": "Human Anatomy Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "BMS 330",
+                    "name": "Human Anatomy",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 336",
+                    "name": "Stem Cells and Regenerative Medicine Lecture and Practicum",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 7
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "BMS 401",
+                    "name": "Senior Project I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 438",
+                    "name": "Human Pathophysiology",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 6
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "BMS 402",
+                    "name": "Senior Project II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 428",
+                    "name": "Pathology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 429",
+                    "name": "Molecular Immunology and practicum",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 448",
+                    "name": "Pathology Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 10
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "BMS 205",
+                    "name": "Human Physiology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 215",
+                    "name": "Human Physiology Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 202",
+                    "name": "Analytical and Physical Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 212",
+                    "name": "Analytical and Physical Chemistry Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 8
+              }
+            }
+          }
+        }
+      },
+      "NANO": {
+        "full_name": "Nanoscience",
+        "tracks": {
+          "_common": {
+            "full_name": "_common",
+            "semesters": {
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "CHEM 201",
+                    "name": "Organic Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 211",
+                    "name": "Organic Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CSCI 101",
+                    "name": "Introduction to Computer Science",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 201",
+                    "name": "Linear Algebra and Vector Geometry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 201",
+                    "name": "Introduction to Thermodynamics, Wave Motion and Optics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 211",
+                    "name": "Thermodynamics, Wave Motion and Optics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "BMS 202",
+                    "name": "Cell Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 212",
+                    "name": "Cell Biology Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "CHEM 202",
+                    "name": "Analytical and Physical Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 212",
+                    "name": "Analytical and Physical Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "MATH 202",
+                    "name": "Ordinary Differential Equations",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATSCI 201",
+                    "name": "Fundamentals of Materials Science and Engineering",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 202",
+                    "name": "Modern Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 212",
+                    "name": "Modern Physics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 203",
+                    "name": "Organic Chemistry II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 204",
+                    "name": "Biochemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 214",
+                    "name": "Biochemistry Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 21
+              },
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "BIOL 101",
+                    "name": "Biology I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 111",
+                    "name": "Biology I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 101",
+                    "name": "Chemistry I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 111",
+                    "name": "Chemistry I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 152",
+                    "name": "Effective Speaking and Composition",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 101",
+                    "name": "Calculus I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 101",
+                    "name": "Introduction to Classical Mechanics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 111",
+                    "name": "Introduction to Classical Mechanics Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "BIOL 102",
+                    "name": "Biology II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 112",
+                    "name": "Biology II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 102",
+                    "name": "Chemistry II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 112",
+                    "name": "Chemistry II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 153",
+                    "name": "Scientific Writing",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 102",
+                    "name": "Calculus II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 102",
+                    "name": "Introduction to Electromagnetism",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 112",
+                    "name": "Introduction to Electromagnetism Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              }
+            }
+          },
+          "NMED": {
+            "full_name": "Nanomedicine",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "NANOSC 302",
+                    "name": "Modern Characterization Techniques I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 305",
+                    "name": "Synthesis/Fabrication of Nanomaterials",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 308",
+                    "name": "Introduction to Polymer Science",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 312",
+                    "name": "Modern Characterization Techniques I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "NANOSC 315",
+                    "name": "Synthesis/Fabrication of Nanomaterials Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 11
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "BMS 205",
+                    "name": "Human Physiology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 301",
+                    "name": "Spectroscopy of Nanomaterials",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 307",
+                    "name": "Nano Sciences Research Lab Rotations",
+                    "credits": 1
+                  },
+                  {
+                    "code": "NANOSC 309",
+                    "name": "Principles of Pharmacokinetics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 310",
+                    "name": "Computer Aided Drug Design",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 13
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "NANOSC 399",
+                    "name": "Internship",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 2
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "NANOSC 403",
+                    "name": "Special Topics in Nanomedicine",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 405",
+                    "name": "Nanopharmaceutics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 417",
+                    "name": "Nanomedicine Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "NANOSC 458",
+                    "name": "Nanoscience Capstone Research Project I",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 10
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "NANOSC 406",
+                    "name": "Nanomaterials for regenerative medicine and tissue engineering",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 498",
+                    "name": "Nanoscience Capstone Research Project II",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 6
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "CHEM 201",
+                    "name": "Organic Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 211",
+                    "name": "Organic Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CSCI 101",
+                    "name": "Introduction to Computer Science",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 201",
+                    "name": "Linear Algebra and Vector Geometry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 201",
+                    "name": "Introduction to Thermodynamics, Wave Motion and Optics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 211",
+                    "name": "Thermodynamics, Wave Motion and Optics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "BMS 202",
+                    "name": "Cell Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 212",
+                    "name": "Cell Biology Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "CHEM 202",
+                    "name": "Analytical and Physical Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 212",
+                    "name": "Analytical and Physical Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "MATH 202",
+                    "name": "Ordinary Differential Equations",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATSCI 201",
+                    "name": "Fundamentals of Materials Science and Engineering",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 202",
+                    "name": "Modern Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 212",
+                    "name": "Modern Physics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 203",
+                    "name": "Organic Chemistry II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 204",
+                    "name": "Biochemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 214",
+                    "name": "Biochemistry Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 21
+              }
+            }
+          },
+          "NPHY": {
+            "full_name": "Nanophysics",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "NANOSC 302",
+                    "name": "Modern Characterization Techniques I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 305",
+                    "name": "Synthesis/Fabrication of Nanomaterials",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 306",
+                    "name": "Statistical Mechanics I & Thermodynamics for Nanoscale Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 312",
+                    "name": "Modern Characterization Techniques I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "NANOSC 315",
+                    "name": "Synthesis/Fabrication of Nanomaterials Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "PHYS 323",
+                    "name": "Quantum Mechanics I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 316",
+                    "name": "Mathematical Physics I",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "MATSCI 302",
+                    "name": "Solid State Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 301",
+                    "name": "Spectroscopy of Nanomaterials",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 307",
+                    "name": "Nano Sciences Research Lab Rotations",
+                    "credits": 1
+                  },
+                  {
+                    "code": "PHYS 210",
+                    "name": "Advanced Electromagnetism",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 348",
+                    "name": "Quantum Mechanics II",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 13
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "NANOSC 399",
+                    "name": "Internship",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 2
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "NANOSC 413",
+                    "name": "Photonics & Laser Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 415",
+                    "name": "Electronic & Magnetic properties of Nano materials",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 6
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "NANOSC 416",
+                    "name": "Modeling of Nano materials",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 499",
+                    "name": "Nanoscience Capstone Research Project",
+                    "credits": 4
+                  }
+                ],
+                "total_credits": 7
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "CHEM 201",
+                    "name": "Organic Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 211",
+                    "name": "Organic Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CSCI 101",
+                    "name": "Introduction to Computer Science",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 201",
+                    "name": "Linear Algebra and Vector Geometry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 201",
+                    "name": "Introduction to Thermodynamics, Wave Motion and Optics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 211",
+                    "name": "Thermodynamics, Wave Motion and Optics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "BMS 202",
+                    "name": "Cell Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 212",
+                    "name": "Cell Biology Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "CHEM 202",
+                    "name": "Analytical and Physical Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 212",
+                    "name": "Analytical and Physical Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "MATH 202",
+                    "name": "Ordinary Differential Equations",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATSCI 201",
+                    "name": "Fundamentals of Materials Science and Engineering",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 202",
+                    "name": "Modern Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 212",
+                    "name": "Modern Physics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 203",
+                    "name": "Organic Chemistry II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 204",
+                    "name": "Biochemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 214",
+                    "name": "Biochemistry Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 21
+              }
+            }
+          },
+          "BIONANO": {
+            "full_name": "Bio-Nanotechnology",
+            "semesters": {
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "NANOSC 302",
+                    "name": "Modern Characterization Techniques I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 303",
+                    "name": "Quantum Mechanics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 305",
+                    "name": "Synthesis/Fabrication of Nanomaterials",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 306",
+                    "name": "Statistical Mechanics I & Thermodynamics for Nanoscale Systems",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 312",
+                    "name": "Modern Characterization Techniques I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "NANOSC 315",
+                    "name": "Synthesis/Fabrication of Nanomaterials Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 14
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "NANOSC 301",
+                    "name": "Spectroscopy of Nanomaterials",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 307",
+                    "name": "Nano Sciences Research Lab Rotations",
+                    "credits": 1
+                  },
+                  {
+                    "code": "NANOSC 317",
+                    "name": "Special Topics in Bio- Nanotechnology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 328",
+                    "name": "Biological Nanomaterials",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 10
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "NANOSC 399",
+                    "name": "Internship",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 2
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "MATH 306",
+                    "name": "Numerical analysis",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 308",
+                    "name": "Introduction to Polymer Science",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 411",
+                    "name": "Bio-Nanotechnology Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "NANOSC 458",
+                    "name": "Nanoscience Capstone Research Project I",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 10
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "NANOSC 408",
+                    "name": "Synthetic Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 409",
+                    "name": "Surfaces and colloidal Science",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 498",
+                    "name": "Nanoscience Capstone Research Project II",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "CHEM 201",
+                    "name": "Organic Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 211",
+                    "name": "Organic Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CSCI 101",
+                    "name": "Introduction to Computer Science",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 201",
+                    "name": "Linear Algebra and Vector Geometry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 201",
+                    "name": "Introduction to Thermodynamics, Wave Motion and Optics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 211",
+                    "name": "Thermodynamics, Wave Motion and Optics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "BMS 202",
+                    "name": "Cell Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 212",
+                    "name": "Cell Biology Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "CHEM 202",
+                    "name": "Analytical and Physical Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 212",
+                    "name": "Analytical and Physical Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "MATH 202",
+                    "name": "Ordinary Differential Equations",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATSCI 201",
+                    "name": "Fundamentals of Materials Science and Engineering",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 202",
+                    "name": "Modern Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 212",
+                    "name": "Modern Physics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 203",
+                    "name": "Organic Chemistry II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 204",
+                    "name": "Biochemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 214",
+                    "name": "Biochemistry Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 21
+              }
+            }
+          },
+          "NCHEM": {
+            "full_name": "Nanochemistry",
+            "semesters": {
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "NANOSC 301",
+                    "name": "Spectroscopy of Nanomaterials",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 307",
+                    "name": "Nano Sciences Research Lab Rotations",
+                    "credits": 1
+                  },
+                  {
+                    "code": "NANOSC 322",
+                    "name": "Chemistry & Physics of Nanomaterials",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 392",
+                    "name": "Introduction to Nanochemistry",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 10
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "NANOSC 399",
+                    "name": "Internship",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 2
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "NANOSC 308",
+                    "name": "Introduction to Polymer Science",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 412",
+                    "name": "Nanochemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "NANOSC 458",
+                    "name": "Nanoscience Capstone Research Project I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATSCI 480",
+                    "name": "Self-assembled Systems",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 10
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "BMS 331",
+                    "name": "Numerical Analysis and Mat Lab",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 409",
+                    "name": "Surfaces and colloidal Science",
+                    "credits": 3
+                  },
+                  {
+                    "code": "NANOSC 498",
+                    "name": "Nanoscience Capstone Research Project II",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "CHEM 201",
+                    "name": "Organic Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 211",
+                    "name": "Organic Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CSCI 101",
+                    "name": "Introduction to Computer Science",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 201",
+                    "name": "Linear Algebra and Vector Geometry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 201",
+                    "name": "Introduction to Thermodynamics, Wave Motion and Optics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 211",
+                    "name": "Thermodynamics, Wave Motion and Optics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "BMS 202",
+                    "name": "Cell Biology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 212",
+                    "name": "Cell Biology Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "CHEM 202",
+                    "name": "Analytical and Physical Chemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 212",
+                    "name": "Analytical and Physical Chemistry Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "MATH 202",
+                    "name": "Ordinary Differential Equations",
+                    "credits": 3
+                  },
+                  {
+                    "code": "MATSCI 201",
+                    "name": "Fundamentals of Materials Science and Engineering",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 202",
+                    "name": "Modern Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 212",
+                    "name": "Modern Physics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 203",
+                    "name": "Organic Chemistry II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 204",
+                    "name": "Biochemistry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BMS 214",
+                    "name": "Biochemistry Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 21
+              }
+            }
+          }
+        }
+      },
+      "PHY": {
+        "full_name": "Physics of the Universe",
+        "tracks": {
+          "_common": {
+            "full_name": "_common",
+            "semesters": {
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "CSCI 101",
+                    "name": "Introduction to Computer Science",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 201",
+                    "name": "Linear Algebra and Vector Geometry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 205",
+                    "name": "Introduction to Modern Astrophysics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 204",
+                    "name": "Analytical Mechanics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 201",
+                    "name": "Thermodynamics, Wave Motion and Optics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 211",
+                    "name": "Thermodynamics, Wave Motion and Optics Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 15
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "MATH 202",
+                    "name": "Ordinary Differential Equations",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 202",
+                    "name": "Modern Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 212",
+                    "name": "Modern Physics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "PHYS 208",
+                    "name": "Electrodynamics I",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 10
+              },
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "PHYS 311",
+                    "name": "Thermal and Statistical Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 316",
+                    "name": "Mathematical Physics I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 323",
+                    "name": "Quantum Mechanics I",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "MATSCI 302",
+                    "name": "Solid State Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 308",
+                    "name": "Electrodynamics II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 327",
+                    "name": "Observational Astrophysics Laboratory",
+                    "credits": 2
+                  },
+                  {
+                    "code": "PHYS 356",
+                    "name": "Mathematical Physics II",
+                    "credits": 4
+                  }
+                ],
+                "total_credits": 12
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "PHYS 498",
+                    "name": "Senior Project I",
+                    "credits": 1
+                  },
+                  {
+                    "code": "PHYS 453",
+                    "name": "Gravity and General Relativity",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 455",
+                    "name": "Mathematical Physics III",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 7
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "PHYS 405",
+                    "name": "Cosmology",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 499",
+                    "name": "Senior Project II",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 5
+              },
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "BIOL 101",
+                    "name": "Biology I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 111",
+                    "name": "Biology I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 101",
+                    "name": "Chemistry I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 111",
+                    "name": "Chemistry I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 152",
+                    "name": "Effective Speaking and Composition",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 101",
+                    "name": "Calculus I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 101",
+                    "name": "Introduction to Classical Mechanics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 111",
+                    "name": "Introduction to Classical Mechanics Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "BIOL 102",
+                    "name": "Biology II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 112",
+                    "name": "Biology II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 102",
+                    "name": "Chemistry II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 112",
+                    "name": "Chemistry II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 153",
+                    "name": "Scientific Writing",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 102",
+                    "name": "Calculus II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 102",
+                    "name": "Introduction to Electromagnetism",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 112",
+                    "name": "Introduction to Electromagnetism Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              }
+            }
+          },
+          "AST": {
+            "full_name": "Astrophysics",
+            "semesters": {
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "PHYS 331",
+                    "name": "Stellar Structure and Evolution",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 3
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "ENGR 207",
+                    "name": "Fluid Mechanics",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 3
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "PHYS 416",
+                    "name": "Galactic and Extragalactic Astrophysics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 438",
+                    "name": "Compact Objects and High Energy Astrophysics",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 6
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "CSCI 101",
+                    "name": "Introduction to Computer Science",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 201",
+                    "name": "Linear Algebra and Vector Geometry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 205",
+                    "name": "Introduction to Modern Astrophysics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 204",
+                    "name": "Analytical Mechanics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 201",
+                    "name": "Thermodynamics, Wave Motion and Optics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 211",
+                    "name": "Thermodynamics, Wave Motion and Optics Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 15
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "MATH 202",
+                    "name": "Ordinary Differential Equations",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 202",
+                    "name": "Modern Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 212",
+                    "name": "Modern Physics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "PHYS 208",
+                    "name": "Electrodynamics I",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 10
+              },
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "PHYS 311",
+                    "name": "Thermal and Statistical Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 316",
+                    "name": "Mathematical Physics I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 323",
+                    "name": "Quantum Mechanics I",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "BIOL 101",
+                    "name": "Biology I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 111",
+                    "name": "Biology I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 101",
+                    "name": "Chemistry I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 111",
+                    "name": "Chemistry I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 152",
+                    "name": "Effective Speaking and Composition",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 101",
+                    "name": "Calculus I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 101",
+                    "name": "Introduction to Classical Mechanics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 111",
+                    "name": "Introduction to Classical Mechanics Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "BIOL 102",
+                    "name": "Biology II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 112",
+                    "name": "Biology II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 102",
+                    "name": "Chemistry II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 112",
+                    "name": "Chemistry II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 153",
+                    "name": "Scientific Writing",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 102",
+                    "name": "Calculus II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 102",
+                    "name": "Introduction to Electromagnetism",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 112",
+                    "name": "Introduction to Electromagnetism Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              }
+            }
+          },
+          "HEP": {
+            "full_name": "High Energy Physics",
+            "semesters": {
+              "Y3S2": {
+                "year": 3,
+                "semester": 2,
+                "seq": 6,
+                "courses": [
+                  {
+                    "code": "PHYS 348",
+                    "name": "Quantum Mechanics II",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 3
+              },
+              "Y3Summer": {
+                "year": 3,
+                "semester": "summer",
+                "seq": 0,
+                "courses": [
+                  {
+                    "code": "PHYS 399",
+                    "name": "Internship",
+                    "credits": 2
+                  }
+                ],
+                "total_credits": 2
+              },
+              "Y4S1": {
+                "year": 4,
+                "semester": 1,
+                "seq": 7,
+                "courses": [
+                  {
+                    "code": "PHYS 430",
+                    "name": "Quantum Mechanics III",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 3
+              },
+              "Y4S2": {
+                "year": 4,
+                "semester": 2,
+                "seq": 8,
+                "courses": [
+                  {
+                    "code": "PHYS 431",
+                    "name": "Quantum Field Theory and Particle Physics",
+                    "credits": 6
+                  }
+                ],
+                "total_credits": 6
+              },
+              "Y2S1": {
+                "year": 2,
+                "semester": 1,
+                "seq": 3,
+                "courses": [
+                  {
+                    "code": "CSCI 101",
+                    "name": "Introduction to Computer Science",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 201",
+                    "name": "Linear Algebra and Vector Geometry",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 205",
+                    "name": "Introduction to Modern Astrophysics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 204",
+                    "name": "Analytical Mechanics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 201",
+                    "name": "Thermodynamics, Wave Motion and Optics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 211",
+                    "name": "Thermodynamics, Wave Motion and Optics Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 15
+              },
+              "Y2S2": {
+                "year": 2,
+                "semester": 2,
+                "seq": 4,
+                "courses": [
+                  {
+                    "code": "MATH 202",
+                    "name": "Ordinary Differential Equations",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 202",
+                    "name": "Modern Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 212",
+                    "name": "Modern Physics Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "PHYS 208",
+                    "name": "Electrodynamics I",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 10
+              },
+              "Y3S1": {
+                "year": 3,
+                "semester": 1,
+                "seq": 5,
+                "courses": [
+                  {
+                    "code": "PHYS 311",
+                    "name": "Thermal and Statistical Physics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 316",
+                    "name": "Mathematical Physics I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 323",
+                    "name": "Quantum Mechanics I",
+                    "credits": 3
+                  }
+                ],
+                "total_credits": 9
+              },
+              "Y1S1": {
+                "year": 1,
+                "semester": 1,
+                "seq": 1,
+                "courses": [
+                  {
+                    "code": "BIOL 101",
+                    "name": "Biology I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 111",
+                    "name": "Biology I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 101",
+                    "name": "Chemistry I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 111",
+                    "name": "Chemistry I Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 152",
+                    "name": "Effective Speaking and Composition",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 101",
+                    "name": "Calculus I",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 101",
+                    "name": "Introduction to Classical Mechanics",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 111",
+                    "name": "Introduction to Classical Mechanics Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              },
+              "Y1S2": {
+                "year": 1,
+                "semester": 2,
+                "seq": 2,
+                "courses": [
+                  {
+                    "code": "BIOL 102",
+                    "name": "Biology II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "BIOL 112",
+                    "name": "Biology II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "CHEM 102",
+                    "name": "Chemistry II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "CHEM 112",
+                    "name": "Chemistry II Lab",
+                    "credits": 1
+                  },
+                  {
+                    "code": "ENGL 153",
+                    "name": "Scientific Writing",
+                    "credits": 2
+                  },
+                  {
+                    "code": "MATH 102",
+                    "name": "Calculus II",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 102",
+                    "name": "Introduction to Electromagnetism",
+                    "credits": 3
+                  },
+                  {
+                    "code": "PHYS 112",
+                    "name": "Introduction to Electromagnetism Lab",
+                    "credits": 1
+                  }
+                ],
+                "total_credits": 17
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

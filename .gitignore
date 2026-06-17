@@ -47,8 +47,5 @@ pkg_err.txt
 data/raw/
 data/sessions/
 
-# Phase 8a curriculum build output (not needed — Product B uses learning_analytics_xai/data/)
-data/curriculum/
-
 # Temp task output files
 *.output
