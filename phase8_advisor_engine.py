@@ -1594,11 +1594,15 @@ class AdvisorEngine:
             return self._ack_profile(profile), []
 
         if intent in ("planning", "graduation", "prerequisite", "risk"):
-            # Pre-flight safety check for planning intent
+            # Pre-flight safety check — planning needs semester + programme;
+            # graduation/risk only need programme to avoid wrong-programme answers.
             if intent == "planning":
                 missing = self._check_planning_readiness(question, profile)
                 if missing:
                     return self._ask_planning_questions(missing, profile), []
+            elif intent in ("graduation", "risk"):
+                if self._check_programme_ambiguity(profile):
+                    return self._ask_programme_question(profile, intent), []
             return self._full_advisory(question, profile, intent, history)
 
         return None, []
@@ -1676,6 +1680,34 @@ class AdvisorEngine:
                         missing.append("track")
 
         return missing
+
+    def _check_programme_ambiguity(self, profile: StudentProfile) -> bool:
+        """
+        Return True when the student identified a generic school code (BUS/CSAI/SCI/ENGR)
+        without specifying which programme. Used to gate graduation and risk responses
+        so the engine never picks a default programme silently.
+        """
+        if not profile.school and not profile.major:
+            return False  # completely unknown — let _full_advisory handle via RAG
+        school_upper = (profile.school or "").upper()
+        major_upper  = (profile.major  or "").upper()
+        return school_upper in _GENERIC_SCHOOL_CODES and major_upper == school_upper
+
+    def _ask_programme_question(self, profile: StudentProfile, intent: str) -> str:
+        """Single-question follow-up when we know the school but not the programme."""
+        school_upper = (profile.school or profile.major or "your school").upper()
+        opts = _TRACK_OPTIONS.get(school_upper, "your specific major or concentration")
+        context_label = {
+            "graduation":   "graduation requirements",
+            "risk":         "academic risk assessment",
+            "prerequisite": "prerequisite advice",
+        }.get(intent, "academic advice")
+        return (
+            f"To give you accurate **{context_label}**, I need to know your specific programme "
+            f"within {school_upper}.\n\n"
+            f"**Which programme are you in?**\n"
+            f"   Options: {opts}"
+        )
 
     def _ask_planning_questions(
         self, missing: list[str], profile: StudentProfile
@@ -1891,6 +1923,7 @@ class AdvisorEngine:
         plan_resolved:      Optional[tuple[str, str]]                   = None
         s_key = p_key = track_key = ""
         presumed_completed: list[str]                                   = []
+        cur_seq = profile.semester or 0
 
         if self._study_plan.available and profile.semester:
             plan_resolved = self._study_plan.resolve_prog(profile.school, profile.major)
