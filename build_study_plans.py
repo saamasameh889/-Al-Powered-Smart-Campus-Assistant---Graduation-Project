@@ -17,9 +17,10 @@ import json, re, copy
 from pathlib import Path
 from collections import defaultdict
 
-JSONL_PATH = Path(r"d:\FINAL_PROJECT_v3\cloned_repo\data\clean\cleaned_documents.jsonl")
-COURSES_F  = Path(r"d:\FINAL_PROJECT_v3\cloned_repo\data\curriculum\courses.json")
-OUTPUT     = Path(r"d:\FINAL_PROJECT_v3\cloned_repo\data\curriculum\study_plans.json")
+_ROOT      = Path(__file__).parent
+JSONL_PATH = _ROOT / "data" / "clean" / "cleaned_documents.jsonl"
+COURSES_F  = _ROOT / "data" / "curriculum" / "courses.json"
+OUTPUT     = _ROOT / "data" / "curriculum" / "study_plans.json"
 
 CURRICULA_SOURCES = {
     "CSAI - Curricula 2022.pdf": "CSAI",

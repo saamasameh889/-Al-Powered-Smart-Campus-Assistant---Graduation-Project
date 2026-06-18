@@ -1,0 +1,846 @@
+{
+  "version": "1.0",
+  "built_at": "2026-06-17T19:34:48.817847+00:00",
+  "total_courses": 137,
+  "courses": {
+    "BIOL 101": {
+      "name": "Biology I",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "BIOL 102": {
+      "name": "Biology II",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "BIOL 111": {
+      "name": "Biology I Lab",
+      "credits": 1,
+      "prerequisites": []
+    },
+    "BIOL 112": {
+      "name": "Biology II Lab",
+      "credits": 1,
+      "prerequisites": []
+    },
+    "BUS 499": {
+      "name": "Capstone Project",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "CHEM 101": {
+      "name": "Chemistry I",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "CHEM 102": {
+      "name": "Chemistry II",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "CHEM 111": {
+      "name": "Chemistry I Lab",
+      "credits": 1,
+      "prerequisites": []
+    },
+    "CHEM 112": {
+      "name": "Chemistry II Lab",
+      "credits": 1,
+      "prerequisites": []
+    },
+    "CHEM 201": {
+      "name": "Organic Chemistry",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "CHEM 202": {
+      "name": "Analytical and Physical Chemistry",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "CHEM 203": {
+      "name": "Organic Chemistry II",
+      "credits": 3,
+      "prerequisites": [
+        "CHEM 201"
+      ]
+    },
+    "CHEM 211": {
+      "name": "Organic Chemistry Lab",
+      "credits": 1,
+      "prerequisites": []
+    },
+    "CHEM 212": {
+      "name": "Analytical and Physical Chemistry Lab",
+      "credits": 1,
+      "prerequisites": []
+    },
+    "CIE 101": {
+      "name": "Fundamentals of Computer Programming",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "CIE 202": {
+      "name": "Fundamentals of Computer Programming",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "CIE 205": {
+      "name": "Data Structures and Algorithm Analysis",
+      "credits": 3,
+      "prerequisites": [
+        "CIE 202"
+      ]
+    },
+    "CIE 470": {
+      "name": "Introduction to Quantum Computation and Quantum Information",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 201"
+      ]
+    },
+    "CSAI 100": {
+      "name": "Introduction to Computational Sciences and AI",
+      "credits": 1,
+      "prerequisites": []
+    },
+    "CSAI 101": {
+      "name": "Fundamentals of Programming and Computer Science",
+      "credits": 2,
+      "prerequisites": []
+    },
+    "CSAI 102": {
+      "name": "Digital Logic and Computer Architecture",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "CSAI 151": {
+      "name": "Object‐Oriented Programming",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 101"
+      ]
+    },
+    "CSAI 201": {
+      "name": "Data Structures",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 151"
+      ]
+    },
+    "CSAI 202": {
+      "name": "Introduction to Database Systems",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 151"
+      ]
+    },
+    "CSAI 203": {
+      "name": "Introduction to Software Engineering",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 101"
+      ]
+    },
+    "CSAI 204": {
+      "name": "Operating Systems",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 201"
+      ]
+    },
+    "CSAI 205": {
+      "name": "Fundamentals of Circuits and Electronics",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "CSAI 251": {
+      "name": "Algorithm Design and Analysis",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 201"
+      ]
+    },
+    "CSAI 252": {
+      "name": "Introduction to Computer Networks",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "CSAI 253": {
+      "name": "Machine Learning",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 201",
+        "MATH 105"
+      ]
+    },
+    "CSAI 301": {
+      "name": "Artificial Intelligence",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 201"
+      ]
+    },
+    "CSAI 302": {
+      "name": "Advanced Database Systems",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 202"
+      ]
+    },
+    "CSAI 351": {
+      "name": "Principles and Practices for Secure Computing",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 201"
+      ]
+    },
+    "CSAI 399": {
+      "name": "Internship",
+      "credits": 4,
+      "prerequisites": []
+    },
+    "CSAI 490": {
+      "name": "Strategic Governance of Intelligent Systems",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "CSAI 498": {
+      "name": "Senior Project - Part 1",
+      "credits": 1,
+      "prerequisites": []
+    },
+    "CSAI 499": {
+      "name": "Senior Project - Part 2",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 498"
+      ]
+    },
+    "DSAI 103": {
+      "name": "Data acquisition in data science (ETL)",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 101"
+      ]
+    },
+    "DSAI 104": {
+      "name": "Knowledge Representation and Reasoning",
+      "credits": 2,
+      "prerequisites": [
+        "CSAI 101"
+      ]
+    },
+    "DSAI 201": {
+      "name": "Data Mining and Information Retrieval",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 202"
+      ]
+    },
+    "DSAI 202": {
+      "name": "Data Governance",
+      "credits": 2,
+      "prerequisites": []
+    },
+    "DSAI 203": {
+      "name": "Data Integration and Visualization",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "DSAI 305": {
+      "name": "Interpretability & Explainability in AI",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 253"
+      ]
+    },
+    "DSAI 307": {
+      "name": "Statistical Inference",
+      "credits": 2,
+      "prerequisites": [
+        "MATH 105"
+      ]
+    },
+    "DSAI 308": {
+      "name": "Deep Learning",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 253"
+      ]
+    },
+    "DSAI 325": {
+      "name": "Introduction to Information Theory",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 105"
+      ]
+    },
+    "DSAI 352": {
+      "name": "Computer Vision",
+      "credits": 3,
+      "prerequisites": [
+        "DSAI 308"
+      ]
+    },
+    "DSAI 353": {
+      "name": "Natural language processing",
+      "credits": 3,
+      "prerequisites": [
+        "DSAI 308"
+      ]
+    },
+    "DSAI 402": {
+      "name": "Reinforcement Learning",
+      "credits": 3,
+      "prerequisites": [
+        "DSAI 308"
+      ]
+    },
+    "DSAI 403": {
+      "name": "Nature inspired computation",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "DSAI 406": {
+      "name": "Machine Learning Engineering for Production (MLOps)",
+      "credits": 3,
+      "prerequisites": [
+        "DSAI 308"
+      ]
+    },
+    "DSAI 413": {
+      "name": "Multimedia Analytics",
+      "credits": 3,
+      "prerequisites": [
+        "DSAI 308"
+      ]
+    },
+    "DSAI 414": {
+      "name": "Social Analytics",
+      "credits": 3,
+      "prerequisites": [
+        "DSAI 308"
+      ]
+    },
+    "DSAI 415": {
+      "name": "Cloud software development",
+      "credits": 3,
+      "prerequisites": [
+        "DSAI 308"
+      ]
+    },
+    "DSAI 416": {
+      "name": "GIS and spatial Analytics",
+      "credits": 3,
+      "prerequisites": [
+        "DSAI 308"
+      ]
+    },
+    "DSAI 417": {
+      "name": "Chatbots",
+      "credits": 3,
+      "prerequisites": [
+        "DSAI 456"
+      ]
+    },
+    "DSAI 418": {
+      "name": "Conversational Agents",
+      "credits": 3,
+      "prerequisites": [
+        "DSAI 456"
+      ]
+    },
+    "DSAI 427": {
+      "name": "Big Data Analytics",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 253"
+      ]
+    },
+    "DSAI 431": {
+      "name": "Fuzzy logic and fuzzy system",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 205"
+      ]
+    },
+    "DSAI 433": {
+      "name": "Game Theory",
+      "credits": 3,
+      "prerequisites": [
+        "CSAI 301"
+      ]
+    },
+    "DSAI 456": {
+      "name": "Speech recognition",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "DSAI 473": {
+      "name": "Data warehousing",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "DSAI 490": {
+      "name": "Selected Topics in Data science and AI",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "ECON 101": {
+      "name": "Principles of Economics",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "ECON 301": {
+      "name": "Intermediate Microeconomic Theory",
+      "credits": 3,
+      "prerequisites": [
+        "ECON 101"
+      ]
+    },
+    "ECON 305": {
+      "name": "Intermediate Macroeconomic Theory",
+      "credits": 3,
+      "prerequisites": [
+        "ECON 101"
+      ]
+    },
+    "ECON 310": {
+      "name": "Intermediate Microeconomic Theory",
+      "credits": 3,
+      "prerequisites": [
+        "ECON 101"
+      ]
+    },
+    "ECON 315": {
+      "name": "Intermediate Macroeconomic Theory",
+      "credits": 3,
+      "prerequisites": [
+        "ECON 101"
+      ]
+    },
+    "ECON 320": {
+      "name": "Money and Banking",
+      "credits": 3,
+      "prerequisites": [
+        "ECON 101"
+      ]
+    },
+    "ECON 325": {
+      "name": "Data Analysis & Forecasting",
+      "credits": 3,
+      "prerequisites": [
+        "ECON 101"
+      ]
+    },
+    "ENGR 207": {
+      "name": "Fluid Mechanics",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 201",
+        "PHYS 101"
+      ]
+    },
+    "MATH 101": {
+      "name": "Calculus I",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MATH 102": {
+      "name": "Calculus II",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MATH 103": {
+      "name": "Calculus for Computational Sciences",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MATH 104": {
+      "name": "Linear Algebra",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MATH 105": {
+      "name": "Probability and Statistics",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 103"
+      ]
+    },
+    "MATH 201": {
+      "name": "Linear Algebra and Vector Geometry",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 102"
+      ]
+    },
+    "MATH 202": {
+      "name": "Ordinary Differential Equations",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 102"
+      ]
+    },
+    "MATH 205": {
+      "name": "Discrete Mathematics for Computational Sciences",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MATH 301": {
+      "name": "Probability and Statistics",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 102"
+      ]
+    },
+    "MATH 302": {
+      "name": "Partial Differential Equations and Complex Analysis",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 202"
+      ]
+    },
+    "MATH 303": {
+      "name": "Linear and Non-linear Programming for Computational Sciences",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 103",
+        "MATH 104"
+      ]
+    },
+    "MATH 306": {
+      "name": "Numerical Analysis",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MATH 307": {
+      "name": "Numerical Methods",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 104"
+      ]
+    },
+    "MATH 308": {
+      "name": "Discrete Math",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MATH 310": {
+      "name": "Abstract Algebra",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MATH 403": {
+      "name": "Introduction to Real Analysis and Topology",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MGMT 101": {
+      "name": "Principles of Management",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MGMT 105": {
+      "name": "Leadership and Professional Ethics",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MGMT 201": {
+      "name": "Human Resources Management",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MGMT 205": {
+      "name": "Project Management",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MGMT 301": {
+      "name": "Operations Management",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MGMT 305": {
+      "name": "Advanced Organizational Behavior",
+      "credits": 3,
+      "prerequisites": [
+        "MGMT 101",
+        "MGMT 201"
+      ]
+    },
+    "MGMT 310": {
+      "name": "General Management Processes/Change",
+      "credits": 3,
+      "prerequisites": [
+        "MGMT 101",
+        "MGMT 201"
+      ]
+    },
+    "MGMT 311": {
+      "name": "Quantitative Methods for Business",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "MGMT 401": {
+      "name": "HR Data Analytics",
+      "credits": 3,
+      "prerequisites": [
+        "MGMT 101",
+        "MGMT 201"
+      ]
+    },
+    "MGMT 405": {
+      "name": "Performance, Compensation and Career Management",
+      "credits": 3,
+      "prerequisites": [
+        "MGMT 101",
+        "MGMT 201"
+      ]
+    },
+    "PHYS 101": {
+      "name": "Introduction to Classical Mechanics",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 102": {
+      "name": "Introduction to Electromagnetism",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 103": {
+      "name": "Physics 1",
+      "credits": 3,
+      "prerequisites": [
+        "MATH 103"
+      ]
+    },
+    "PHYS 104": {
+      "name": "Physics 2",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 111": {
+      "name": "Introduction to Classical Mechanics Lab",
+      "credits": 1,
+      "prerequisites": []
+    },
+    "PHYS 112": {
+      "name": "Introduction to Electromagnetism Lab",
+      "credits": 1,
+      "prerequisites": []
+    },
+    "PHYS 201": {
+      "name": "Introduction to Thermodynamics, Wave Motion and Optics",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 202": {
+      "name": "Modern Physics",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 201",
+        "PHYS 212"
+      ]
+    },
+    "PHYS 204": {
+      "name": "Analytical Mechanics",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 101"
+      ]
+    },
+    "PHYS 205": {
+      "name": "Introduction to Modern Astrophysics",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 101"
+      ]
+    },
+    "PHYS 208": {
+      "name": "Electrodynamics I",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 210": {
+      "name": "Advanced Electromagnetism",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 211": {
+      "name": "Introduction to Thermodynamics, Wave Motion and Optics Lab",
+      "credits": 1,
+      "prerequisites": [
+        "PHYS 201"
+      ]
+    },
+    "PHYS 212": {
+      "name": "Modern Physics Lab",
+      "credits": 1,
+      "prerequisites": [
+        "PHYS 202"
+      ]
+    },
+    "PHYS 218": {
+      "name": "Vector Calculus",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 308": {
+      "name": "Electrodynamics II",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 208"
+      ]
+    },
+    "PHYS 311": {
+      "name": "Thermal and Statistical Physics",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 201"
+      ]
+    },
+    "PHYS 316": {
+      "name": "Mathematical Physics I",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 323": {
+      "name": "Quantum Mechanics I",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 202"
+      ]
+    },
+    "PHYS 326": {
+      "name": "Mathematical Physics II",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 346",
+        "MATH 201",
+        "MATH 202"
+      ]
+    },
+    "PHYS 327": {
+      "name": "Observational Astrophysics Laboratory",
+      "credits": 2,
+      "prerequisites": []
+    },
+    "PHYS 331": {
+      "name": "Stellar Structure and Evolution",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 205"
+      ]
+    },
+    "PHYS 346": {
+      "name": "Mathematical Physics I",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 348": {
+      "name": "Quantum Mechanics II",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 323"
+      ]
+    },
+    "PHYS 356": {
+      "name": "Mathematical Physics II",
+      "credits": 4,
+      "prerequisites": [
+        "MATH 201"
+      ]
+    },
+    "PHYS 364": {
+      "name": "Biological Physics",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 399": {
+      "name": "Internship",
+      "credits": 2,
+      "prerequisites": []
+    },
+    "PHYS 405": {
+      "name": "Cosmology",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 205"
+      ]
+    },
+    "PHYS 416": {
+      "name": "Galactic and Extragalactic Astrophysics",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 205"
+      ]
+    },
+    "PHYS 420": {
+      "name": "The Solar System",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 422": {
+      "name": "Astrophysical Fluid Dynamics",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 430": {
+      "name": "Quantum Mechanics III",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 348"
+      ]
+    },
+    "PHYS 431": {
+      "name": "Quantum Field Theory and Particle Physics",
+      "credits": 6,
+      "prerequisites": [
+        "PHYS 323"
+      ]
+    },
+    "PHYS 432": {
+      "name": "Advanced Dynamics",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 438": {
+      "name": "Compact Objects and High Energy Astrophysics",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 205"
+      ]
+    },
+    "PHYS 450": {
+      "name": "Computational Physics",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 453": {
+      "name": "Gravity and General Relativity",
+      "credits": 3,
+      "prerequisites": []
+    },
+    "PHYS 455": {
+      "name": "Mathematical Physics III",
+      "credits": 3,
+      "prerequisites": [
+        "PHYS 316"
+      ]
+    },
+    "PHYS 498": {
+      "name": "Senior Project I",
+      "credits": 1,
+      "prerequisites": []
+    },
+    "PHYS 499": {
+      "name": "Senior Project II",
+      "credits": 2,
+      "prerequisites": [
+        "PHYS 498"
+      ]
+    }
+  }
+}

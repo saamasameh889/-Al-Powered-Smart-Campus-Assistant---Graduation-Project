@@ -457,23 +457,33 @@ class GPAForecaster:
         if out_np.shape[0] == 1:
             out_np = out_np[0]           # (H, 3)
 
-        # clamp outputs to valid GPA range [0, 1] in normalised space
-        out_np = np.clip(out_np, 0.0, 1.0)
+        # Model predicts GPA *delta* from the last observed GPA (÷4 normalisation).
+        # Convert back to absolute GPA: last_gpa + delta * 4.
+        last_gpa_norm = float(t[0, -1, 0])   # t shape after unsqueeze: (1, T, D)
+        last_gpa      = last_gpa_norm * 4.0
 
-        # ensure quantile ordering: q10 ≤ q50 ≤ q90
-        q10 = out_np[:, 0]
-        q50 = out_np[:, 1]
-        q90 = out_np[:, 2]
-        q50 = np.maximum(q50, q10)
-        q90 = np.maximum(q90, q50)
+        # clip deltas to [-1, 1] (±4 GPA swing is the physical maximum)
+        out_np = np.clip(out_np, -1.0, 1.0)
+
+        # quantile ordering: q10 ≤ q50 ≤ q90 in delta space
+        dq10 = out_np[:, 0]
+        dq50 = out_np[:, 1]
+        dq90 = out_np[:, 2]
+        dq50 = np.maximum(dq50, dq10)
+        dq90 = np.maximum(dq90, dq50)
+
+        # absolute GPA, clipped to valid range
+        gpa_q10 = np.clip(last_gpa + dq10 * 4.0, 0.5, 4.0)
+        gpa_q50 = np.clip(last_gpa + dq50 * 4.0, 0.5, 4.0)
+        gpa_q90 = np.clip(last_gpa + dq90 * 4.0, 0.5, 4.0)
 
         return {
-            "gpa_q10":         q10 * 4.0,
-            "gpa_median":      q50 * 4.0,
-            "gpa_q90":         q90 * 4.0,
-            "gpa_norm_q10":    q10,
-            "gpa_norm_median": q50,
-            "gpa_norm_q90":    q90,
+            "gpa_q10":         gpa_q10,
+            "gpa_median":      gpa_q50,
+            "gpa_q90":         gpa_q90,
+            "gpa_norm_q10":    gpa_q10 / 4.0,
+            "gpa_norm_median": gpa_q50 / 4.0,
+            "gpa_norm_q90":    gpa_q90 / 4.0,
         }
 
     def predict_what_if(
@@ -545,6 +555,7 @@ class GPAForecaster:
                     "lstm_layers":  self.model.lstm_enc.lstm.num_layers,
                     "horizon":      self.horizon,
                     "dropout":      self.model.static_enc.net[3].p,
+                    "delta_target": True,
                 },
                 "train_losses": self.train_losses,
                 "val_losses":   self.val_losses,

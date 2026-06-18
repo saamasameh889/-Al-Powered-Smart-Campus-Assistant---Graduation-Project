@@ -46,8 +46,9 @@ _SCHOOL_ENC: dict[str, float] = {
 # Typical per-semester credit load across 8 semesters (increasing then stable)
 _SEM_LOADS = [12, 15, 18, 18, 21, 21, 21, 18]
 
-STATIC_DIM   = 6    # programme_enc, school_enc, attendance, final_score, failed_ratio, difficulty
-TEMPORAL_DIM = 3    # gpa_norm, load_norm, risk_flag
+STATIC_DIM   = 7    # programme_enc, school_enc, attendance, final_score, failed_ratio, difficulty, total_credits_norm
+TEMPORAL_DIM = 5    # gpa_norm, load_norm, risk_flag, gpa_delta (momentum), cumulative_credits_norm
+_MAX_CREDITS = 160.0  # max credits for an 8-semester degree (~20 credits/sem)
 
 _DATA_PATH = Path(__file__).parent.parent / "data" / "students_summary.csv"
 
@@ -70,19 +71,19 @@ def _trajectory_params(row: pd.Series) -> tuple[float, float, str]:
     att     = float(row.get("avg_attendance", 80))
 
     if risk == "High Risk" and failed >= 4:
-        return -0.12, 0.28, "declining"
+        return -0.18, 0.32, "declining"
     if risk == "High Risk":
-        return -0.04, 0.25, "at_risk_volatile"
+        return -0.07, 0.28, "at_risk_volatile"
     if risk == "Medium Risk" and att < 72:
-        return -0.01, 0.22, "low_attendance_drift"
+        return -0.03, 0.25, "low_attendance_drift"
     if risk == "Medium Risk":
-        return +0.03, 0.17, "gradual_improver"
+        return +0.06, 0.20, "gradual_improver"
     if risk == "Low Risk" and gpa >= 3.6:
-        return +0.00, 0.08, "high_achiever_stable"
+        return +0.01, 0.12, "high_achiever_stable"
     if risk == "Low Risk" and gpa < 2.7:
-        return +0.07, 0.13, "late_bloomer"
+        return +0.10, 0.18, "late_bloomer"
     # default: low-risk, average GPA
-    return +0.02, 0.11, "steady_performer"
+    return +0.03, 0.16, "steady_performer"
 
 
 def _simulate_trajectory(
@@ -115,12 +116,12 @@ def _simulate_trajectory(
             gpa -= diff * rng.uniform(0.0, 0.07)
 
         # Occasional risk events (failed batch, personal issues)
-        if rng.random() < 0.06:
-            gpa -= rng.uniform(0.15, 0.35)
+        if rng.random() < 0.10:
+            gpa -= rng.uniform(0.20, 0.45)
 
         # Occasional recovery term
-        if rng.random() < 0.04:
-            gpa += rng.uniform(0.10, 0.25)
+        if rng.random() < 0.08:
+            gpa += rng.uniform(0.15, 0.35)
 
         gpa = float(np.clip(gpa, 0.5, 4.0))
         gpas.append(gpa)
@@ -146,6 +147,10 @@ def _extract_windows(
     """
     Slide a (history_len + horizon) window over the trajectory.
     Returns (static_list, temporal_list, target_list) for all valid positions.
+
+    Credit accumulation is tracked across the full trajectory so that each
+    window knows the running total of credits the student has earned —
+    this directly encodes GPA inertia (more credits = harder to shift GPA).
     """
     statics, temporals, targets = [], [], []
     n = len(gpas)
@@ -156,22 +161,34 @@ def _extract_windows(
         hist_loads  = loads[start : start + history_len]
         fut_gpas    = gpas [start + history_len : start + window]
 
+        # Credits completed before this window (from earlier semesters in trajectory)
+        credits_before_window = sum(loads[:start])
+
         temporal = []
-        for g, lo in zip(hist_gpas, hist_loads):
+        running_credits = credits_before_window
+        for i, (g, lo) in enumerate(zip(hist_gpas, hist_loads)):
+            running_credits += lo
             gpa_norm  = g  / 4.0
             load_norm = lo / 24.0
-            # risk_flag encodes academic standing as a continuous signal
             risk_flag = (
                 1.0 if g < 2.0
                 else 0.5 if g < 2.5
                 else 0.25 if g < 3.0
                 else 0.0
             )
-            temporal.append([gpa_norm, load_norm, risk_flag])
+            gpa_delta = (hist_gpas[i] - hist_gpas[i - 1]) / 4.0 if i > 0 else 0.0
+            # Cumulative credits encodes GPA inertia: high value → hard to shift GPA
+            cumulative_credits_norm = running_credits / _MAX_CREDITS
+            temporal.append([gpa_norm, load_norm, risk_flag, gpa_delta, cumulative_credits_norm])
 
-        target = [g / 4.0 for g in fut_gpas]
+        # Total credits at end of history = how inertial GPA is going into forecast
+        total_credits_norm = running_credits / _MAX_CREDITS
+        static_extended = list(static_x) + [total_credits_norm]
 
-        statics.append(static_x)
+        last_hist_gpa = hist_gpas[-1]
+        target = [(g - last_hist_gpa) / 4.0 for g in fut_gpas]  # GPA change from last observed
+
+        statics.append(static_extended)
         temporals.append(temporal)
         targets.append(target)
 
