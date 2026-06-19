@@ -43,7 +43,18 @@ PROG_DIFFICULTY = {
     "BUS":  0.18, "FIN":  0.22,
 }
 
-# Programme total credits
+# ── TRAINING-PIPELINE CONSTANTS (do NOT use for live analytics) ──────────────
+# These constants are used ONLY during offline model training to generate
+# curriculum-aware features from synthetic student data (students_summary.csv).
+#
+# For live analytics with real student data, all degree requirements MUST be
+# loaded from degree_requirements.json via CurriculumEngine.get_degree_requirements().
+# Using these dicts at runtime would bypass the official handbook data.
+#
+# Known discrepancy: MECH/EEE/CIV core credits below show 90, but
+# degree_requirements.json (authoritative) shows 91.  Do NOT fix here —
+# fix in the JSON file and reload.  Training data tolerates this minor offset.
+
 PROG_CREDITS = {
     "CSAI": 132, "DSAI": 132, "SWE":  132,
     "MECH": 140, "EEE":  140, "CIV":  140,
@@ -51,13 +62,12 @@ PROG_CREDITS = {
     "BUS":  114, "FIN":  114,
 }
 
-# Programme core credit requirements (from degree_requirements.json)
+# TRAINING ONLY — see note above.
 PROG_CORE_CREDITS = {
     "CSAI": 86, "DSAI": 86, "SWE":  86,
-    "MECH": 90, "EEE":  90, "CIV":  90,
+    "MECH": 90, "EEE":  90, "CIV":  90,  # handbook says 91; see note above
     "MATH": 80, "PHYS": 80, "CHEM": 80,
     "BUS":  74, "FIN":  74,
-
 }
 
 # Typical semesters for a full degree at Zewail City

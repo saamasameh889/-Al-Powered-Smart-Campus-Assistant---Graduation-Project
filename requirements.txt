@@ -51,6 +51,11 @@ matplotlib==3.11.0
 # ── Streamlit UI (both products) ─────────────────────────────────────────────
 streamlit==1.41.1
 
+# ── Google Classroom integration (Product B — XAI import) ────────────────────
+google-api-python-client>=2.100.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.2.0
+
 # ── Utilities ────────────────────────────────────────────────────────────────
 python-dotenv==1.0.1
 httpx==0.28.1

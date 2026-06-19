@@ -190,13 +190,15 @@ def generate_recommendations(
                     priority=1,
                     category="Strategy",
                     icon="🆘",
-                    title=f"Address {failed} Failed Course(s) Urgently",
+                    title=f"{int(failed)} Failed Course(s) Detected — High GPA Impact",
                     detail=(
-                        f"You have failed {failed} course(s), which is severely impacting your GPA. "
-                        "You must retake these courses. Consider reducing your credit load this semester. "
-                        "Meet with your academic advisor to create a recovery roadmap."
+                        f"You have {int(failed)} failed course(s) on record, which is significantly "
+                        "impacting your predicted GPA. Failed courses reduce your credit completion ratio "
+                        "and may block downstream coursework depending on prerequisite chains. "
+                        "Focusing on the root cause of these failures is the highest-leverage "
+                        "study improvement you can make."
                     ),
-                    impact="Passing failed retakes could raise GPA by +0.4 to +0.9",
+                    impact="Clearing failed courses could raise predicted GPA by +0.4 to +0.9",
                     shap_driver="Failed Courses",
                 ))
 
@@ -301,13 +303,13 @@ def generate_recommendations(
             priority=4,
             category="Strategy",
             icon="🌟",
-            title="Excellent Performance — Aim for Honours",
+            title="Excellent Performance — Dean's Honours Eligible",
             detail=(
-                f"Your predicted GPA ({predicted_gpa:.2f}) qualifies for Dean's Honours. "
-                "Consider taking advanced electives or research projects to further distinguish yourself. "
-                "Your strong academic record is an asset for graduate school applications."
+                f"Your predicted GPA ({predicted_gpa:.2f}) is at or above the Dean's Honours threshold. "
+                "Your current study approach and performance consistency are working well. "
+                "Focus on maintaining your strong performance across all assessment components."
             ),
-            impact="Maintaining 3.5+ qualifies for Honours distinction at graduation",
+            impact="Maintaining GPA ≥ 3.5 qualifies for Honours distinction at graduation",
             shap_driver="Cumulative GPA",
         ))
 

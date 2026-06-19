@@ -1,50 +1,43 @@
 {
-  "minimum_gpa_requirements": [
-    {
-      "value": 2.0,
-      "context": "ve warning semesters (WS1 and WS2) to improve their CGPA to 2.0000 or above. In addition, students on probation must achieve a minimum"
-    }
-  ],
+  "_source": "Zewail City of Science, Technology and Innovation — Academic Regulations Handbook",
+
+  "grade_structure": {
+    "total_marks": 100,
+    "coursework_marks": 60,
+    "final_exam_marks": 40,
+    "note": "Coursework (60 marks) is uploaded to Google Classroom. Final exam (40 marks) is administered separately and is never uploaded to Classroom."
+  },
+
+  "passing_conditions": {
+    "minimum_total_percent": 60,
+    "minimum_final_exam_marks": 14,
+    "minimum_final_exam_marks_out_of": 40,
+    "note": "A student FAILS a course if their total grade is below 60/100 OR if they score below 14/40 on the final exam, even if the total would otherwise be passing."
+  },
+
+  "gpa_scale_ref": "gpa_rules.json",
+  "passing_grade_letter": "C-",
+  "graduation_minimum_gpa": 2.0,
+
+  "academic_standing": {
+    "good_standing_min_cgpa": 2.0,
+    "probation_trigger_cgpa_below": 2.0,
+    "max_credits_on_probation": 12,
+    "probation_warning_semesters": ["WS1", "WS2"],
+    "dismissal_after": "Failure to reach 2.0 CGPA after both WS1 and WS2"
+  },
+
+  "graduation_requirements": {
+    "minimum_cgpa": 2.0,
+    "honours": 3.5,
+    "high_honours": 3.8,
+    "credit_requirements_ref": "degree_requirements.json"
+  },
+
   "probation_rules": [
-    "Probation, Suspension, and Dismissal",
-    "probation",
-    "Probation",
-    "probation for failing to achieve a",
-    "probation status are not permitted to register for more than 12 Credit Hours per",
-    "probation have two consecutive warning semesters (WS1 and WS2) to improve",
-    "probation must achieve a minimum",
-    "probation leads to dismissal as illustrated in Figure 3",
-    "probation who fail to achieve a minimum semester GPA of 2",
-    "probation who fail to achieve a minimum CGPA of 2",
-    "probation semester WS1 but failed to achieve a minimum CGPA of 2",
-    "Probation WS1",
-    "Probation WS2",
-    "Probation and Dismissal policy",
-    "probation due to deficiency in their",
-    "probation for prohibited",
-    "probation lifted only after providing the University proof of successful rehabilitative",
-    "PROBATION, SUSPENSION AND DISMISSAL",
-    "PROBATION",
-    "probation for failing to achieve a cGPA",
-    "probation status are not permitted to register for more than 12 credit hours per",
-    "probation have two consecutive warning semesters (WS1 and WS2) to improve their",
-    "probation must achieve a minimum semester GPA",
-    "probation who fail to achieve a minimum semester GPA (sGPA) of 2",
-    "probation who fail to achieve a minimum cGPA of 2",
-    "probation due to deficiency in their overall",
-    "probation or incomplete conditions\"",
-    "probation, overload and incomplete courses",
-    "Probation, Suspension & Dismissal",
-    "probation for failure to make satisfactory progress towards a degree",
-    "probation status or the academic warning will result from failure to achieve a 2",
-    "probation)",
-    "probationary period",
-    "probation semester and fail to",
-    "probationary semester or who fail to achieve a cumulative grade point average of 2"
-  ],
-  "academic_standing_rules": [
-    "academic standing at the"
-  ],
-  "passing_grade": "D",
-  "graduation_minimum_gpa": 2.0
+    "Students whose CGPA falls below 2.0 are placed on academic probation.",
+    "Probation students may not register more than 12 credit hours per semester.",
+    "Two consecutive warning semesters (WS1, WS2) are granted to recover CGPA to 2.0.",
+    "Failure to achieve minimum CGPA after WS2 results in academic dismissal."
+  ]
 }

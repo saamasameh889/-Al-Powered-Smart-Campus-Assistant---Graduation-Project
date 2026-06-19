@@ -80,6 +80,7 @@ class CurriculumEngine:
 
         # Derived look-ups built once after loading
         self._by_code:     dict[str, dict]        = {}  # code → course dict
+        self._by_alias:    dict[str, str]          = {}  # normalised alias → code
         self._prereqs_of:  dict[str, list[str]]   = {}  # code → [prereq codes]
         self._dependents:  dict[str, list[str]]   = {}  # code → [dependent codes]
         self._prog_courses: dict[str, list[str]]  = {}  # programme → [codes]
@@ -108,18 +109,28 @@ class CurriculumEngine:
         try:
             self._gpa_rules = json.loads((_DATA / "gpa_rules.json").read_text("utf-8"))
         except Exception:
-            self._gpa_rules = {"probation_threshold": 1.7, "honours_threshold": 3.5,
-                                "graduation_minimum": 2.0, "dismissal_threshold": 1.0}
+            self._gpa_rules = {
+                "scale": [],
+                "graduation_minimum_gpa":     2.0,
+                "probation_threshold_gpa":    2.0,
+                "dismissal_threshold_gpa":    1.7,
+                "honours_threshold_gpa":      3.5,
+                "high_honours_threshold_gpa": 3.8,
+            }
 
         self._build_indexes()
         self._loaded = True
 
     def _build_indexes(self):
-        # Course lookup by code
+        # Course lookup by code + alias index
         for c in self._catalog:
             code = c.get("code", "").strip().upper()
             if code:
                 self._by_code[code] = c
+            for alias in c.get("aliases", []):
+                norm = re.sub(r"\s+", " ", re.sub(r"[^a-z0-9\s]", " ", alias.lower())).strip()
+                if norm:
+                    self._by_alias[norm] = code
 
         # Prerequisite map: exclude self-references
         for edge in self._prereq_graph:
@@ -155,44 +166,135 @@ class CurriculumEngine:
 
     # ── Course matching ────────────────────────────────────────────────────────
 
+    # Common abbreviations for fuzzy title matching
+    _ABBREVS: dict[str, str] = {
+        "intro":        "introduction",
+        "fund":         "fundamentals",
+        "cs":           "computer science",
+        "ai":           "artificial intelligence",
+        "ml":           "machine learning",
+        "ds":           "data science",
+        "calc":         "calculus",
+        "sci":          "science",
+        "computational": "computational",
+    }
+    _STOP_WORDS: set[str] = {
+        "and", "for", "to", "of", "the", "a", "an", "in", "with",
+        "using", "applied", "advanced", "basic",
+        "fall", "spring", "summer", "winter",
+    }
+
+    def _fuzzy_words(self, text: str) -> set[str]:
+        """Normalise text → set of meaningful root words for Jaccard scoring."""
+        words = re.sub(r"[^a-z0-9\s]", "", text.lower()).split()
+        expanded: list[str] = []
+        for w in words:
+            expansion = self._ABBREVS.get(w, w)
+            # split multi-word expansions ("computer science" → ["computer","science"])
+            expanded.extend(expansion.split())
+        return set(expanded) - self._STOP_WORDS
+
+    @staticmethod
+    def _strip_classroom_suffix(text: str) -> str:
+        """
+        Remove Classroom-appended semester / section suffixes before matching.
+
+        Handles patterns like:
+          "Technical English 1 - FALL 2023"  → "Technical English 1"
+          "Positive Psychology-Sec.1 Spring 2023" → "Positive Psychology"
+          "CSAI-490 (Selected Topics …)"     → kept as-is (code still extracted)
+        """
+        t = text
+        # " - Fall 2022", "- FALL2022", "–Spring2023", etc.
+        t = re.sub(r'\s*[-–]\s*(fall|spring|summer|winter)\w*\s*\d{4}', '', t, flags=re.IGNORECASE)
+        # "Fall 2022" / "FALL2022" at the end with optional leading space
+        t = re.sub(r'\s+(fall|spring|summer|winter)\s*\d{4}$', '', t, flags=re.IGNORECASE)
+        # "-Sec.1", "- Sec 2", "-Section3"
+        t = re.sub(r'\s*[-–]?\s*sec(tion)?\.?\s*\d+', '', t, flags=re.IGNORECASE)
+        # Trailing bare year (e.g. "Technical English 1 2023")
+        t = re.sub(r'\s+\d{4}$', '', t)
+        return t.strip(' -–')
+
     def match_course_code(self, user_text: str) -> Optional[str]:
         """
-        Try to extract / match an official course code from free-form text.
+        Match free-form course name/text to an official catalogue code.
 
         Priority:
-          1. Exact match (normalised, spaces removed)
-          2. Regex extraction of code pattern from text
-          3. Title substring match
+          1. Exact code lookup  (normalised, spaces removed)
+          2. Regex extraction of code pattern from text  (handles "CSAI-490", "CSAI 100")
+          3. Handbook title substring match  (catalogue title contained in user text)
+          4. Fuzzy Jaccard word-overlap  (handles "Intro" vs "Introduction", abbreviations)
+             — run twice: once on raw name, once on semester-suffix-stripped name
         Returns the official code string or None.
         """
         self._load()
         if not user_text:
             return None
 
-        # Normalise: remove extra spaces inside codes like "CSAI 100" → "CSAI100"
-        normalised = re.sub(r'([A-Za-z]+)\s+(\d+)', r'\1\2', user_text).upper().strip()
+        # Normalise: collapse "CSAI 100" → "CSAI100", and "CSAI-490" → "CSAI490"
+        normalised = re.sub(r'([A-Za-z]+)[\s-]+(\d+)', r'\1\2', user_text).upper().strip()
 
-        # 1. Exact code lookup
+        # 1. Exact code lookup (with and without dash normalisation)
         if normalised in self._by_code:
             return normalised
 
-        # 2. Extract code pattern anywhere in text
-        pattern = r'\b([A-Z]{2,8})\s*(\d{3,4})\b'
-        for m in re.finditer(pattern, user_text.upper()):
+        # 2. Extract code pattern anywhere in text (allow optional dash or space)
+        for m in re.finditer(r'\b([A-Z]{2,8})[\s-]*(\d{3,4})\b', user_text.upper()):
             candidate = m.group(1) + m.group(2)
             if candidate in self._by_code:
                 return candidate
 
-        # 3. Title substring match (case-insensitive)
-        lower = user_text.lower()
-        best_match = None
-        best_len   = 0
-        for code, info in self._by_code.items():
-            title = info.get("title", "").lower()
-            if title and title in lower and len(title) > best_len:
-                best_match = code
-                best_len   = len(title)
-        return best_match
+        # Strip Classroom semester / section suffixes for title-based matching
+        clean_text = self._strip_classroom_suffix(user_text)
+
+        # 2.5 Alias lookup (exact normalised match, whitespace-collapsed)
+        def _norm(t: str) -> str:
+            return re.sub(r"\s+", " ", re.sub(r"[^a-z0-9\s]", " ", t.lower())).strip()
+
+        for search_text in (clean_text, user_text):
+            na = _norm(search_text)
+            if na in self._by_alias:
+                return self._by_alias[na]
+            # Partial: any alias fully contained in the normalised text
+            for alias_norm, alias_code in self._by_alias.items():
+                if alias_norm and alias_norm in na:
+                    return alias_code
+
+        # 3. Handbook title substring match (catalogue title ⊆ user text)
+        #    Try both the original and the cleaned name
+        for search_text in (user_text, clean_text):
+            lower = search_text.lower()
+            best_sub = None
+            best_len = 0
+            for code, info in self._by_code.items():
+                title = info.get("title", "").lower()
+                if title and title in lower and len(title) > best_len:
+                    best_sub = code
+                    best_len = len(title)
+            if best_sub:
+                return best_sub
+
+        # 4. Fuzzy Jaccard word-overlap — run on cleaned name to avoid year/season noise
+        for search_text in (clean_text, user_text):
+            user_words = self._fuzzy_words(search_text)
+            if not user_words:
+                continue
+            best_match: Optional[str] = None
+            best_score = 0.0
+            for code, info in self._by_code.items():
+                title_words = self._fuzzy_words(info.get("title", ""))
+                if not title_words:
+                    continue
+                union = len(user_words | title_words)
+                inter = len(user_words & title_words)
+                score = inter / union if union else 0.0
+                if score > 0.45 and score > best_score:
+                    best_match = code
+                    best_score = score
+            if best_match:
+                return best_match
+
+        return None
 
     def get_course(self, code: str) -> Optional[dict]:
         self._load()
@@ -243,11 +345,11 @@ class CurriculumEngine:
         """
         self._load()
         rules = self._gpa_rules
-        dismissal  = rules.get("dismissal_threshold",  1.0)
-        probation  = rules.get("probation_threshold",  1.7)
-        good       = rules.get("good_standing_minimum", 2.0)
-        honours    = rules.get("honours_threshold",     3.5)
-        high_hon   = rules.get("high_honours_threshold", 3.8)
+        dismissal  = rules.get("dismissal_threshold_gpa",    1.7)
+        probation  = rules.get("probation_threshold_gpa",    2.0)
+        good       = rules.get("graduation_minimum_gpa",     2.0)
+        honours    = rules.get("honours_threshold_gpa",      3.5)
+        high_hon   = rules.get("high_honours_threshold_gpa", 3.8)
 
         if gpa < dismissal:
             return "Academic Dismissal Risk"
@@ -420,7 +522,7 @@ class CurriculumEngine:
         req = self.get_degree_requirements(programme)
         total_req  = req.get("total_credits", 132)
         min_gpa    = req.get("minimum_gpa",   2.0)
-        honours_t  = self._gpa_rules.get("honours_threshold",     3.5)
+        honours_t  = self._gpa_rules.get("honours_threshold_gpa", 3.5)
 
         remaining        = max(total_req - credits_passed, 0)
         progress         = min(credits_passed / max(total_req, 1), 1.0)
@@ -514,11 +616,12 @@ class CurriculumEngine:
         programme = (programme or "CSAI").upper()
         recs: list[dict] = []
 
-        gpa_rules   = self._gpa_rules
-        grad_min    = gpa_rules.get("graduation_minimum",  2.0)
-        prob_thresh = gpa_rules.get("probation_threshold", 1.7)
-        hon_thresh  = gpa_rules.get("honours_threshold",   3.5)
-        req         = self.get_degree_requirements(programme)
+        gpa_rules     = self._gpa_rules
+        grad_min      = gpa_rules.get("graduation_minimum_gpa",  2.0)
+        dismissal_t   = gpa_rules.get("dismissal_threshold_gpa", 1.7)
+        prob_thresh   = gpa_rules.get("probation_threshold_gpa", 2.0)
+        hon_thresh    = gpa_rules.get("honours_threshold_gpa",   3.5)
+        req           = self.get_degree_requirements(programme)
 
         delay       = curriculum_features.get("graduation_delay_semesters", 0)
         blocked_cr  = curriculum_features.get("blocked_credit_hours",       0)
@@ -542,12 +645,12 @@ class CurriculumEngine:
                     "priority": 1,
                     "category": "Curriculum",
                     "icon": "🔗",
-                    "title": f"Retake {fc} — Prerequisite Bottleneck",
+                    "title": f"{fc} — Blocked Prerequisite Chain",
                     "detail": (
                         f"{fc} ({ft}) is a prerequisite for {dep_str}. "
-                        f"Failing it blocks {entry['blocked_credit_hours']} credit hours "
-                        f"and {len(entry['core_courses_blocked'])} programme core courses. "
-                        f"Retaking and passing {fc} is the single highest-leverage action you can take."
+                        f"This failure is currently blocking {entry['blocked_credit_hours']} credit hours "
+                        f"and {len(entry['core_courses_blocked'])} programme core course(s). "
+                        f"Clearing this course would unblock the downstream academic path."
                     ),
                     "impact": (
                         f"Unblocks {len(entry['all_blocked'])} course(s) "
@@ -562,16 +665,15 @@ class CurriculumEngine:
                 "priority": 2,
                 "category": "Curriculum",
                 "icon": "📅",
-                "title": f"Graduation Pace: ~{delay:.1f} Semester(s) Behind",
+                "title": f"Curriculum Pace: ~{delay:.1f} Semester(s) Behind Standard",
                 "detail": (
-                    f"At current pace you are approximately {delay:.1f} semester(s) behind the "
-                    f"expected {programme} curriculum progression. "
-                    f"The degree requires {req.get('total_credits', 132)} credits; "
+                    f"Based on your actual completed credits, you are approximately {delay:.1f} "
+                    f"semester(s) behind the standard {programme} progression pace. "
+                    f"The degree requires {req.get('total_credits', 132)} credits total; "
                     f"you have completed {curriculum_features.get('graduation_progress_ratio', 0)*100:.0f}% so far. "
-                    "Consider increasing your credit load or attending summer sessions "
-                    "to stay on schedule for graduation."
+                    "This is an informational pace indicator based on your Classroom history."
                 ),
-                "impact": "Each semester of delay costs one additional year of tuition and delays career start",
+                "impact": f"~{delay:.1f} semester(s) behind expected pace for {programme}",
                 "shap_driver": "Curriculum Delay",
             })
         elif delay < -0.5:
@@ -579,14 +681,13 @@ class CurriculumEngine:
                 "priority": 4,
                 "category": "Curriculum",
                 "icon": "🏎️",
-                "title": "Ahead of Curriculum Schedule",
+                "title": "Ahead of Standard Curriculum Pace",
                 "detail": (
-                    f"You are approximately {abs(delay):.1f} semester(s) ahead of the expected "
-                    f"{programme} curriculum pace. "
-                    "Consider applying for research assistantships, advanced electives, or "
-                    "preparing for graduate school applications."
+                    f"Based on your actual completed credits, you are approximately {abs(delay):.1f} "
+                    f"semester(s) ahead of the standard {programme} curriculum pace. "
+                    "Your course completion rate is above the typical programme timeline."
                 ),
-                "impact": "Strong candidate for early graduation or double-programme track",
+                "impact": f"~{abs(delay):.1f} semester(s) ahead of standard pace",
                 "shap_driver": "Curriculum Delay",
             })
 
@@ -626,15 +727,19 @@ class CurriculumEngine:
             })
 
         # ── 5. Academic probation per official regulations ────────────────────
-        if prob_thresh <= predicted_gpa < grad_min:
+        # Zewail: probation is triggered when CGPA falls below 2.0.
+        # Students in the dismissal-risk zone (CGPA < 1.7) are shown the more
+        # severe "Below Graduation GPA" message above; this surfaces the probation
+        # warning for the 1.7–2.0 band (WS1 / WS2 territory).
+        if dismissal_t <= predicted_gpa < prob_thresh:
             recs.append({
                 "priority": 2,
                 "category": "Curriculum",
                 "icon": "⚠️",
-                "title": "Warning: Approaching Academic Probation",
+                "title": "Academic Probation (CGPA Below 2.0)",
                 "detail": (
-                    f"Your GPA ({predicted_gpa:.2f}) is between the probation threshold "
-                    f"({prob_thresh}) and good standing ({grad_min}). "
+                    f"Your GPA ({predicted_gpa:.2f}) is below the Zewail good-standing "
+                    f"minimum of {prob_thresh:.1f}. "
                     "Per Zewail academic regulations, students on probation may not register "
                     "for more than 12 credit hours per semester and have two consecutive "
                     "warning semesters (WS1 and WS2) to raise their CGPA above 2.0. "
@@ -891,9 +996,9 @@ class CurriculumEngine:
         alignment    = curriculum_features.get("curriculum_alignment_score",     0.5)
         readiness    = curriculum_features.get("graduation_readiness_score",     0.5)
 
-        prob_thresh = rules.get("probation_threshold",  1.7)
-        grad_min    = rules.get("graduation_minimum",   2.0)
-        hon_thresh  = rules.get("honours_threshold",    3.5)
+        prob_thresh = rules.get("probation_threshold_gpa",  2.0)
+        grad_min    = rules.get("graduation_minimum_gpa",   2.0)
+        hon_thresh  = rules.get("honours_threshold_gpa",    3.5)
 
         # Graduation pace — being ahead is positive, behind is negative
         # Each semester behind ≈ −0.10 GPA impact (from academic literature)
