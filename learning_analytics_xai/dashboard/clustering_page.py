@@ -379,12 +379,6 @@ def render_clustering_page(openai_client=None) -> None:
         "margin-bottom:4px'>🧩 Student Archetype Clustering</div>",
         unsafe_allow_html=True,
     )
-    st.markdown(
-        "<div style='font-size:.83rem;color:#4A3A7A;margin-bottom:20px'>"
-        "Gaussian Mixture Model + UMAP discovers natural student archetypes "
-        "from academic behaviour patterns — no labels needed.</div>",
-        unsafe_allow_html=True,
-    )
 
     # ── Try loading a saved model ──────────────────────────────────────────────
     clusterer: StudentClusterer | None = st.session_state.get("_clusterer_obj")
@@ -400,28 +394,13 @@ def render_clustering_page(openai_client=None) -> None:
     st.divider()
 
     # ── UMAP scatter + BIC curve side by side ─────────────────────────────────
-    col_scatter, col_bic = st.columns([2, 1])
-    with col_scatter:
-        st.markdown(
-            "<div style='font-size:.72rem;font-weight:700;color:#9D77F5;"
-            "text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px'>"
-            "UMAP Projection</div>",
-            unsafe_allow_html=True,
-        )
-        _render_scatter(clusterer)
-    with col_bic:
-        st.markdown(
-            "<div style='font-size:.72rem;font-weight:700;color:#9D77F5;"
-            "text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px'>"
-            "BIC Model Selection</div>",
-            unsafe_allow_html=True,
-        )
-        _render_bic_curve(clusterer)
-        # Brief interpretation
-        st.caption(
-            f"K={clusterer.n_clusters} minimises BIC (Bayesian Information Criterion). "
-            f"Lower BIC = better balance between fit quality and model complexity."
-        )
+    st.markdown(
+        "<div style='font-size:.72rem;font-weight:700;color:#9D77F5;"
+        "text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px'>"
+        "UMAP Projection</div>",
+        unsafe_allow_html=True,
+    )
+    _render_scatter(clusterer)
 
     st.divider()
 

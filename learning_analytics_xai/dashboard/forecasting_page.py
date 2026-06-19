@@ -329,11 +329,6 @@ def render_forecasting_page() -> None:
         "margin-bottom:4px'>📈 GPA Forecasting & Study Tools</div>",
         unsafe_allow_html=True,
     )
-    st.markdown(
-        "<div style='font-size:.83rem;color:#4A3A7A;margin-bottom:16px'>"
-        "LSTM trajectory forecasting · GPA/grade calculators · attendance tracker · priority matrix</div>",
-        unsafe_allow_html=True,
-    )
 
     # ── Import study tools (lazy, avoids circular at module load time) ─────────
     _tools_err = ""

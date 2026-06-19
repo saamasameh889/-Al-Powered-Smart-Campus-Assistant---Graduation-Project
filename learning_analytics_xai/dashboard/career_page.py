@@ -94,9 +94,6 @@ def render_career_page(openai_client=None) -> None:
       <div style="font-size:1.25rem;font-weight:800;color:#F5F0FF;letter-spacing:-.02em">GitHub Career Advisor</div>
       <div style="font-size:.78rem;color:#6D4ABA;margin-top:3px">Portfolio analysis · Internship readiness · Actionable AI advice</div>
     </div>
-    <div style="margin-left:auto">
-      <span style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#10B981;border-radius:100px;padding:5px 14px;font-size:.68rem;font-weight:700;letter-spacing:.08em">✦ POWERED BY GPT-4o</span>
-    </div>
   </div>
 </div>
 """)
