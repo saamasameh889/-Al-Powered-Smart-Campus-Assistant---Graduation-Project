@@ -1079,9 +1079,9 @@ def _render_classroom_import_status() -> None:
     total_courses = len(p.course_records)
     graded_count  = len(graded)
 
-    # Performance category counts
+    # Performance category counts — all courses so donut shows full 50
     cat_counts = {}
-    for r in graded:
+    for r in p.course_records:
         cat_counts[r.performance_category] = cat_counts.get(r.performance_category, 0) + 1
 
     traj_map = {"improving": ("📈", "#6EE7B7"), "stable": ("➡️", "#93C5FD"),
