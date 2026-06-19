@@ -1,6 +1,7 @@
 # Environment — NEVER commit API keys
 .env
 *.env
+.streamlit/secrets.toml
 
 # Python cache
 __pycache__/
@@ -46,6 +47,9 @@ pkg_err.txt
 # Large generated data (regenerate with phase scripts)
 data/raw/
 data/sessions/
+
+# Runtime logs
+db/query_log.jsonl
 
 # Temp task output files
 *.output

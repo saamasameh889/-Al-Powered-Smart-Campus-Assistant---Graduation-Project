@@ -487,9 +487,11 @@ class StudentProfileBuilder:
         asgn   = profile.avg_assignments              or 0.0
         quiz   = profile.avg_quizzes                  or 0.0
         labs   = profile.avg_labs                     or 0.0
-        mid    = profile.avg_midterm                  or 0.0
-        fin    = profile.avg_predicted_final          or 0.0
         ovr    = profile.avg_overall                  or 0.0
+        fin    = profile.avg_predicted_final          or ovr  # final not in Classroom → use overall
+        # Midterm not always labelled in Classroom; fall back to overall to avoid
+        # passing 0 to the model (which trained on 0 meaning "student failed", not "no data")
+        mid    = profile.avg_midterm if profile.avg_midterm > 0 else ovr
         failed = float(profile.insufficient_data_count)
         cr     = float(profile.credits_total_attempted or (profile.actual_semester_number * _AVG_CREDITS_PER_SEM))
         cp     = float(profile.credits_completed_coursework)
