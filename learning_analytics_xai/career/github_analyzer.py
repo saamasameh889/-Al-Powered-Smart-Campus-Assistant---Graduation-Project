@@ -235,14 +235,28 @@ class GitHubAnalyzer:
         return stars * 2 + recency * 5
 
     @staticmethod
-    def _quality_score(r: dict) -> int:
-        """0-4: non-empty original repo, description, topics, license."""
-        return (
-            int(bool(r.get("has_wiki") is not None and not r.get("fork") and r.get("size", 0) > 0))
-            + int(bool((r.get("description") or "").strip()))
-            + int(bool(r.get("topics")))
-            + int(bool(r.get("license")))
-        )
+    def _quality_score(r: dict) -> float:
+        """
+        0-5 score reflecting both impact and metadata quality.
+          +1  Impact    : stars >= 5 (community validated the repo)
+          +1  Substance : original repo with real content OR fork with stars (contributed)
+          +1  Described : has a description
+          +1  Tagged    : has topics
+          +1  Licensed  : has a license
+        Stars dominate for high-impact profiles — a repo with 50+ stars is
+        clearly valuable regardless of missing metadata.
+        """
+        stars   = r.get("stargazers_count", 0)
+        is_fork = r.get("fork", False)
+        size    = r.get("size", 0)
+
+        impact    = 1 if stars >= 5 else 0
+        substance = 1 if (not is_fork and size > 0) or stars >= 5 else 0
+        described = int(bool((r.get("description") or "").strip()))
+        tagged    = int(bool(r.get("topics")))
+        licensed  = int(bool(r.get("license")))
+
+        return impact + substance + described + tagged + licensed
 
     @staticmethod
     def _classify_domain(name: str, desc: str, topics: list[str]) -> list[str]:
@@ -354,12 +368,17 @@ class GitHubAnalyzer:
         gaps = []
         n = max(len(repos), 1)
 
-        # Repo metadata quality
-        no_desc = [r["name"] for r in repos if not (r.get("description") or "").strip()]
-        if no_desc:
+        # Repo metadata quality — only flag low-starred repos (high-starred repos are
+        # clearly valuable even without metadata)
+        no_desc = [r["name"] for r in repos
+                   if not (r.get("description") or "").strip()
+                   and r.get("stargazers_count", 0) < 5]
+        if len(no_desc) > n * 0.15:
             gaps.append(f"{len(no_desc)}/{n} repos have no description (e.g. {', '.join(no_desc[:3])})")
 
-        no_topics = [r["name"] for r in repos if not r.get("topics")]
+        no_topics = [r["name"] for r in repos
+                     if not r.get("topics")
+                     and r.get("stargazers_count", 0) < 10]
         if len(no_topics) > n * 0.5:
             gaps.append(f"{len(no_topics)}/{n} repos have no topics/tags — topics improve SEO and recruiter discovery")
 
@@ -389,9 +408,10 @@ class GitHubAnalyzer:
             if not profile.get("bio"):
                 gaps.append("Empty GitHub bio — a 1-2 line bio with your stack and interests improves recruiter click-through")
 
-        # Fork-heavy profile
+        # Fork-heavy profile — only flag if forks dominate AND the originals have low impact
         fork_count = sum(1 for r in repos if r.get("fork"))
-        if fork_count > n * 0.6:
+        original_stars = sum(r.get("stargazers_count", 0) for r in repos if not r.get("fork"))
+        if fork_count > n * 0.6 and original_stars < 50:
             gaps.append(f"{fork_count}/{n} repos are forks — original projects demonstrate initiative, not just consumption")
 
         return gaps
@@ -501,6 +521,8 @@ class GitHubAnalyzer:
         total_forks  = sum(r.get("forks_count",       0) for r in repos_raw)
         total_issues = sum(r.get("open_issues_count",  0) for r in repos_raw)
         avg_quality  = sum(self._quality_score(r) for r in top_repos) / max(len(top_repos), 1)
+        # Normalise to 0-4 for display continuity (scale was 0-5 after adding impact point)
+        avg_quality  = round(avg_quality * 4 / 5, 2)
 
         gaps = self._detect_gaps(
             repos_raw, activity, all_languages, lang_pct, alignment,
@@ -561,7 +583,7 @@ class GitHubAnalyzer:
             fork_tag  = " [fork]" if r["is_fork"] else ""
             repo_lines.append(
                 f"  • {r['name']}{fork_tag}  ⭐{r['stars']}  🍴{r['forks_count']}"
-                f"  [quality {r['quality']}/4]  [{lang_part}]  {topics}\n"
+                f"  [quality {r['quality']}/5]  [{lang_part}]  {topics}\n"
                 f"    {r['description'][:130]}"
             )
 
@@ -591,7 +613,7 @@ PORTFOLIO METRICS (all {a["n_repos"]} repos scanned):
   🍴 Total forks      : {a["total_forks"]:,}   (how many times others forked YOUR repos)
   🐛 Open issues      : {a["total_open_issues"]:,}
   📊 Domain coverage  : {", ".join(a["top_domains"])}
-  🔧 Repo quality avg : {a["avg_quality"]:.1f}/4  (description + topics + license + non-empty)
+  🔧 Repo quality avg : {a["avg_quality"]:.1f}/4  (impact/stars + substance + description + topics + license)
   🎭 Presentation     : {a["presentation_score"]}/3  (profile README, bio, custom avatar)
 
 LANGUAGE DISTRIBUTION:
