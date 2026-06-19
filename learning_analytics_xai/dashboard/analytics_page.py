@@ -635,22 +635,22 @@ def _render_chat_widget(wtype: str, kwargs: dict, step: int):
     """Render the input widget for the current question; returns the answer."""
     key = f"xai_w_{step}"
     if wtype == "select":
-        return st.selectbox("", kwargs["options"], key=key,
+        return st.selectbox("Answer", kwargs["options"], key=key,
                             label_visibility="collapsed")
     if wtype == "int":
-        return st.number_input("",
+        return st.number_input("Answer",
             min_value=int(kwargs.get("lo", 0)),
             max_value=int(kwargs.get("hi", 100)),
             value=int(kwargs.get("default", 5)),
             step=1, key=key, label_visibility="collapsed")
     if wtype == "float":
-        return st.number_input("",
+        return st.number_input("Answer",
             min_value=float(kwargs.get("lo", 0)),
             max_value=float(kwargs.get("hi", 200)),
             value=float(kwargs.get("default", 20)),
             step=0.5, key=key, label_visibility="collapsed")
     if wtype == "text":
-        return st.text_input("",
+        return st.text_input("Answer",
             placeholder=kwargs.get("placeholder", ""),
             key=key, label_visibility="collapsed")
     if wtype == "score":
