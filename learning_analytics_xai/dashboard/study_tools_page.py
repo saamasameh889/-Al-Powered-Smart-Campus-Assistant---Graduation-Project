@@ -43,10 +43,10 @@ def _section(title: str) -> None:
 # ── Grade scale definitions ───────────────────────────────────────────────────
 
 GRADE_SCALE_40 = {
-    "A+": 4.0, "A": 4.0, "A-": 3.7,
-    "B+": 3.3, "B": 3.0, "B-": 2.7,
-    "C+": 2.3, "C": 2.0, "C-": 1.7,
-    "D+": 1.3, "D": 1.0, "F": 0.0,
+    "A": 4.00, "A-": 3.67,
+    "B+": 3.33, "B": 3.00, "B-": 2.67,
+    "C+": 2.33, "C": 2.00, "C-": 1.67,
+    "F": 0.00,
 }
 GRADE_SCALE_50 = {
     "A+": 5.0, "A": 4.75, "A-": 4.5,
@@ -57,9 +57,9 @@ GRADE_SCALE_50 = {
 
 def _gpa_classification(gpa: float, scale: float = 4.0) -> tuple[str, str]:
     ratio = gpa / scale
-    if ratio >= 0.925: return "Summa Cum Laude",  "#10B981"
-    if ratio >= 0.875: return "Magna Cum Laude",  "#34D399"
-    if ratio >= 0.825: return "Cum Laude",        "#6EE7B7"
+    if ratio >= 0.925: return "Distinction",       "#10B981"
+    if ratio >= 0.875: return "High Merit",        "#34D399"
+    if ratio >= 0.825: return "Merit",             "#6EE7B7"
     if ratio >= 0.750: return "First Class",      "#8B5CF6"
     if ratio >= 0.625: return "Second Class",     "#A78BFA"
     if ratio >= 0.500: return "Pass",             "#F59E0B"
@@ -180,9 +180,9 @@ def render_cgpa_converter() -> None:
     p1.markdown(_big_result(f"{pct:.2f}%", "Percentage", pct_color), unsafe_allow_html=True)
 
     # Letter grade
-    letter = ("A+" if pct >= 90 else "A" if pct >= 80 else "B+" if pct >= 75
-              else "B" if pct >= 70 else "C+" if pct >= 65 else "C" if pct >= 60
-              else "D" if pct >= 50 else "F")
+    letter = ("A" if pct >= 95 else "A-" if pct >= 90 else "B+" if pct >= 85
+              else "B" if pct >= 80 else "B-" if pct >= 75 else "C+" if pct >= 70
+              else "C" if pct >= 65 else "C-" if pct >= 60 else "F")
     p2.markdown(_big_result(letter, "Letter Grade", "#8B5CF6"), unsafe_allow_html=True)
 
     # Classification
