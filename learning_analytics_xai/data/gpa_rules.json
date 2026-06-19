@@ -1,73 +1,23 @@
 {
+  "_source": "Zewail City of Science, Technology and Innovation — Academic Regulations Handbook",
+  "_note": "Grade scale is applied to the total course grade out of 100 (Classroom 60 + Final 40). No D grades — anything below 60 is F.",
   "scale": [
-    {
-      "grade": "A+",
-      "min_percent": 97,
-      "gpa_points": 4.0
-    },
-    {
-      "grade": "A",
-      "min_percent": 93,
-      "gpa_points": 4.0
-    },
-    {
-      "grade": "A-",
-      "min_percent": 90,
-      "gpa_points": 3.7
-    },
-    {
-      "grade": "B+",
-      "min_percent": 87,
-      "gpa_points": 3.3
-    },
-    {
-      "grade": "B",
-      "min_percent": 83,
-      "gpa_points": 3.0
-    },
-    {
-      "grade": "B-",
-      "min_percent": 80,
-      "gpa_points": 2.7
-    },
-    {
-      "grade": "C+",
-      "min_percent": 77,
-      "gpa_points": 2.3
-    },
-    {
-      "grade": "C",
-      "min_percent": 73,
-      "gpa_points": 2.0
-    },
-    {
-      "grade": "C-",
-      "min_percent": 70,
-      "gpa_points": 1.7
-    },
-    {
-      "grade": "D+",
-      "min_percent": 67,
-      "gpa_points": 1.3
-    },
-    {
-      "grade": "D",
-      "min_percent": 60,
-      "gpa_points": 1.0
-    },
-    {
-      "grade": "F",
-      "min_percent": 0,
-      "gpa_points": 0.0
-    }
+    { "grade": "A",  "min_percent": 95, "max_percent": 100, "gpa_points": 4.0 },
+    { "grade": "A-", "min_percent": 90, "max_percent": 95,  "gpa_points": 3.7 },
+    { "grade": "B+", "min_percent": 85, "max_percent": 90,  "gpa_points": 3.3 },
+    { "grade": "B",  "min_percent": 80, "max_percent": 85,  "gpa_points": 3.0 },
+    { "grade": "B-", "min_percent": 75, "max_percent": 80,  "gpa_points": 2.7 },
+    { "grade": "C+", "min_percent": 70, "max_percent": 75,  "gpa_points": 2.3 },
+    { "grade": "C",  "min_percent": 65, "max_percent": 70,  "gpa_points": 2.0 },
+    { "grade": "C-", "min_percent": 60, "max_percent": 65,  "gpa_points": 1.7 },
+    { "grade": "F",  "min_percent": 0,  "max_percent": 60,  "gpa_points": 0.0 }
   ],
-  "graduation_minimum": 2.0,
-  "probation_threshold": 1.7,
-  "dismissal_threshold": 1.0,
-  "good_standing_minimum": 2.0,
-  "honours_threshold": 3.5,
-  "high_honours_threshold": 3.8,
+  "passing_minimum_percent": 60,
+  "graduation_minimum_gpa": 2.0,
+  "probation_threshold_gpa": 2.0,
+  "dismissal_threshold_gpa": 1.7,
+  "honours_threshold_gpa": 3.5,
+  "high_honours_threshold_gpa": 3.8,
   "max_gpa": 4.0,
-  "passing_grade": "D",
-  "credit_hours_scale": "4.0"
+  "passing_grade_letter": "C-"
 }

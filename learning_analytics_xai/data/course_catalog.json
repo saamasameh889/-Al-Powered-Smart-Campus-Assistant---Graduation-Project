@@ -323,6 +323,12 @@
       "CSAI - Catalog 2024.pdf",
       "CSAI - Curricula 2022.pdf",
       "School of CSAI - Catalog 2022.pdf"
+    ],
+    "aliases": [
+      "internship",
+      "csai internship",
+      "summer internship",
+      "industrial training"
     ]
   },
   {
@@ -340,6 +346,15 @@
       "CSAI - Catalog 2024.pdf",
       "CSAI - Curricula 2022.pdf",
       "School of CSAI - Catalog 2022.pdf"
+    ],
+    "aliases": [
+      "senior project part 1",
+      "senior project i",
+      "graduation project part 1",
+      "graduation project 1",
+      "grad project part 1",
+      "grad project 1",
+      "capstone part 1"
     ]
   },
   {
@@ -358,6 +373,16 @@
       "CSAI - Catalog 2024.pdf",
       "CSAI - Curricula 2022.pdf",
       "School of CSAI - Catalog 2022.pdf"
+    ],
+    "aliases": [
+      "senior project part 2",
+      "senior project ii",
+      "graduation project part 2",
+      "graduation project 2",
+      "grad project part 2",
+      "grad project 2",
+      "capstone part 2",
+      "graduation project"
     ]
   },
   {
@@ -2168,6 +2193,9 @@
       "SCI - Catalog 2024.pdf",
       "SCI - Curricula 2022.pdf",
       "SCI Curricula 2023.pdf"
+    ],
+    "aliases": [
+      "physics internship"
     ]
   },
   {
@@ -2372,6 +2400,11 @@
       "SCI - Catalog 2024.pdf",
       "SCI - Curricula 2022.pdf",
       "SCI Curricula 2023.pdf"
+    ],
+    "aliases": [
+      "senior project i",
+      "graduation project part 1",
+      "grad project 1"
     ]
   },
   {
@@ -2389,6 +2422,11 @@
       "SCI - Catalog 2024.pdf",
       "SCI - Curricula 2022.pdf",
       "SCI Curricula 2023.pdf"
+    ],
+    "aliases": [
+      "senior project ii",
+      "graduation project part 2",
+      "grad project 2"
     ]
   },
   {
@@ -2712,6 +2750,244 @@
     "school": "School of Business / Finance",
     "sources": [
       "zewail_knowledge_base"
+    ]
+  },
+  {
+    "code": "ENGL002",
+    "prefix": "ENGL",
+    "number": "002",
+    "title": "Remedial English 1",
+    "credits": 2,
+    "prerequisites": [],
+    "school": "Foundation",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "remedial english 1"
+    ]
+  },
+  {
+    "code": "ENGL003",
+    "prefix": "ENGL",
+    "number": "003",
+    "title": "Remedial English 2",
+    "credits": 2,
+    "prerequisites": [
+      "ENGL002"
+    ],
+    "school": "Foundation",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "remedial english 2"
+    ]
+  },
+  {
+    "code": "ENGL004",
+    "prefix": "ENGL",
+    "number": "004",
+    "title": "Remedial English 3",
+    "credits": 2,
+    "prerequisites": [
+      "ENGL003"
+    ],
+    "school": "Foundation",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "remedial english 3",
+      "remedial english for science",
+      "remedial english"
+    ]
+  },
+  {
+    "code": "ENGL152",
+    "prefix": "ENGL",
+    "number": "152",
+    "title": "Effective Speaking and Composition",
+    "credits": 2,
+    "prerequisites": [
+      "ENGL004"
+    ],
+    "school": "Foundation",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "advanced academic speaking and writing",
+      "advanced academic speaking & writing",
+      "speaking and composition",
+      "effective speaking"
+    ]
+  },
+  {
+    "code": "ENGL153",
+    "prefix": "ENGL",
+    "number": "153",
+    "title": "Scientific Writing",
+    "credits": 2,
+    "prerequisites": [
+      "ENGL152"
+    ],
+    "school": "Foundation",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "scientific writing"
+    ]
+  },
+  {
+    "code": "ENGL156",
+    "prefix": "ENGL",
+    "number": "156",
+    "title": "Technical English 1",
+    "credits": 2,
+    "prerequisites": [
+      "ENGL004"
+    ],
+    "school": "Foundation",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "technical english 1",
+      "technical english i"
+    ]
+  },
+  {
+    "code": "ENGL157",
+    "prefix": "ENGL",
+    "number": "157",
+    "title": "Technical English 2",
+    "credits": 2,
+    "prerequisites": [
+      "ENGL156"
+    ],
+    "school": "Foundation",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "technical english 2",
+      "technical english ii"
+    ]
+  },
+  {
+    "code": "SCH163",
+    "prefix": "SCH",
+    "number": "163",
+    "title": "Sustainability, Social and Ethical Issues in Computing",
+    "credits": 2,
+    "prerequisites": [],
+    "school": "CS&AI",
+    "sources": [
+      "CSAI Curricula"
+    ],
+    "aliases": [
+      "sustainability social and ethical issues in computing",
+      "sustain social ethical issues in comp",
+      "social and ethical issues in computing",
+      "sustainability ethical"
+    ]
+  },
+  {
+    "code": "SCH261",
+    "prefix": "SCH",
+    "number": "261",
+    "title": "Engineering Project Management",
+    "credits": 2,
+    "prerequisites": [],
+    "school": "Engineering",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "engineering project management",
+      "project management and economics"
+    ]
+  },
+  {
+    "code": "SCH264",
+    "prefix": "SCH",
+    "number": "264",
+    "title": "Introduction to Entrepreneurship and Small Business Management",
+    "credits": 2,
+    "prerequisites": [],
+    "school": "School of Business",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "introduction to entrepreneurship and small business management",
+      "intro to entrepreneurship and small business management",
+      "intro to entrepreneurship and small mangm",
+      "entrepreneurship and small business"
+    ]
+  },
+  {
+    "code": "SCH273",
+    "prefix": "SCH",
+    "number": "273",
+    "title": "Cognitive Psychology",
+    "credits": 2,
+    "prerequisites": [],
+    "school": "School of Business",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "cognitive psychology"
+    ]
+  },
+  {
+    "code": "SCH277",
+    "prefix": "SCH",
+    "number": "277",
+    "title": "Positive Psychology",
+    "credits": 2,
+    "prerequisites": [],
+    "school": "School of Business",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "positive psychology"
+    ]
+  },
+  {
+    "code": "MGMT105",
+    "prefix": "MGMT",
+    "number": "105",
+    "title": "Leadership and Professional Ethics",
+    "credits": 3,
+    "prerequisites": [],
+    "school": "School of Business",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "leadership and professional ethics"
+    ]
+  },
+  {
+    "code": "SCH244",
+    "prefix": "SCH",
+    "number": "244",
+    "title": "Leadership and Professionalism",
+    "credits": 2,
+    "prerequisites": [],
+    "school": "Humanities",
+    "sources": [
+      "Curriculum Handbook"
+    ],
+    "aliases": [
+      "leadership and professionalism",
+      "leadership & professionalism",
+      "leadership professionalism"
     ]
   }
 ]

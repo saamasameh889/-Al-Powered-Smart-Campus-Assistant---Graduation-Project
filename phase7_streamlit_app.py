@@ -8,6 +8,8 @@ from __future__ import annotations
 import re
 import sys
 import time
+from dotenv import load_dotenv
+load_dotenv()
 
 # Packages installed on D: due to C: disk space constraints
 _D_PACKAGES = r"D:\py311_packages"
@@ -44,15 +46,13 @@ _XAI_DASHBOARD = str(PROJECT_ROOT / "learning_analytics_xai" / "dashboard")
 if _XAI_DASHBOARD not in sys.path:
     sys.path.insert(0, _XAI_DASHBOARD)
 try:
-    import importlib
-    if "analytics_page" in sys.modules:
-        importlib.reload(sys.modules["analytics_page"])
     from analytics_page import render_learning_analytics_page as _render_xai_page
     _XAI_IMPORT_OK  = True
     _XAI_IMPORT_ERR = ""
 except Exception as _e:
+    import traceback as _tb
     _XAI_IMPORT_OK  = False
-    _XAI_IMPORT_ERR = str(_e)
+    _XAI_IMPORT_ERR = str(_e) + "\n\n" + _tb.format_exc()
 
 # ── Product D: clustering page ─────────────────────────────────────────────────
 try:
@@ -1310,9 +1310,8 @@ def main() -> None:
             rag_ok = False
             err    = str(exc)
 
-    tab_chat, tab_analytics, tab_xai, tab_eval, tab_clust, tab_fcast, tab_career = st.tabs([
+    tab_chat, tab_xai, tab_eval, tab_clust, tab_fcast, tab_career = st.tabs([
         "💬  Chat",
-        "📊  Analytics",
         "🧠  Learning Analytics & XAI",
         "🔬  RAG Evaluation",
         "🧩  Student Archetypes",
@@ -1330,12 +1329,10 @@ def main() -> None:
         else:
             render_chat(assistant)
 
-    with tab_analytics:
-        render_analytics()
-
     with tab_xai:
         if not _XAI_IMPORT_OK:
-            st.error(f"**Learning Analytics import failed:** {_XAI_IMPORT_ERR}")
+            st.error(f"**Learning Analytics import failed:** {_XAI_IMPORT_ERR.splitlines()[0]}")
+            st.code(_XAI_IMPORT_ERR, language="python")
         else:
             try:
                 _render_xai_page()
@@ -1353,24 +1350,37 @@ def main() -> None:
                 "🎓 &nbsp;Consult the Academic Advisor</div>",
                 unsafe_allow_html=True,
             )
-            flow    = st.session_state.get("xai_flow", {})
-            profile = st.session_state.get("xai_profile", {})
-            result  = st.session_state.get("xai_result", {})
 
-            prog   = flow.get("programme", "")
-            sem    = flow.get("semester", "")
-            risk   = getattr(result, "risk_label", "unknown risk") if result else "unknown risk"
-            mid    = profile.get("avg_midterm",  "?")
-            fin    = profile.get("avg_final",    "?")
-            att    = profile.get("avg_attendance","?")
-            failed = profile.get("failed_courses", 0)
+            # Prefer Classroom profile (live data); fall back to manual flow
+            cp      = st.session_state.get("xai_classroom_profile")
+            result  = st.session_state.get("xai_result", {})
+            risk    = getattr(result, "risk_label", "unknown risk") if result else "unknown risk"
+
+            if cp is not None:
+                prog   = getattr(cp, "programme",         "")
+                sem    = getattr(cp, "actual_semester_number", "")
+                mid    = round(getattr(cp, "avg_midterm",  0), 1)
+                fin    = round(getattr(cp, "avg_final",    0), 1)
+                att    = round(getattr(cp, "avg_attendance",0), 1)
+                failed = getattr(cp, "failed_courses_count", 0)
+                gpa    = round(getattr(cp, "cumulative_gpa", 0), 2)
+            else:
+                flow   = st.session_state.get("xai_flow", {})
+                profile= st.session_state.get("xai_profile", {})
+                prog   = flow.get("programme", "")
+                sem    = flow.get("semester", "")
+                mid    = profile.get("avg_midterm",   "?")
+                fin    = profile.get("avg_final",     "?")
+                att    = profile.get("avg_attendance","?")
+                failed = profile.get("failed_courses", 0)
+                gpa    = profile.get("cumulative_gpa", "?")
 
             default_q = (
-                f"I'm a {prog} student in semester {sem}. "
+                f"I'm a {prog} student in semester {sem} (cumulative GPA {gpa}). "
                 f"My XAI risk assessment is '{risk}'. "
-                f"Avg midterm {mid}%, final {fin}%, attendance {att}%, "
-                f"failed courses {failed}. "
-                f"What should I do to improve my academic standing?"
+                f"Avg midterm {mid}%, avg attendance {att}%, "
+                f"failed courses: {failed}. "
+                f"What should I focus on to improve my academic standing?"
             )
 
             bridge_q = st.text_area(

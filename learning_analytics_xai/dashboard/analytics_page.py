@@ -34,8 +34,15 @@ from recommendation_engine.recommender import generate_recommendations
 from what_if_analysis.what_if_engine import (
     get_whatif_engine, simulate_curriculum_scenario, get_curriculum_preset_scenarios,
 )
-from feature_engineering.feature_engineer import PROG_DIFFICULTY, PROG_CREDITS, PROG_CORE_CREDITS
+from feature_engineering.feature_engineer import PROG_DIFFICULTY
+# PROG_CREDITS / PROG_CORE_CREDITS intentionally NOT imported here.
+# All degree requirements for live analytics come from CurriculumEngine.
 from curriculum_intelligence.curriculum_engine import get_engine as get_curriculum_engine
+from data_ingestion.classroom_importer import (
+    ClassroomImporter, build_oauth_flow, exchange_code_for_token,
+    _GOOGLE_AVAILABLE, get_pass_status,
+)
+from data_ingestion.student_profile_builder import StudentProfileBuilder, StudentXAIProfile
 
 # ── Colour palette (matches existing purple theme) ────────────────────────────
 PURPLE   = "#7C3AED"
@@ -148,6 +155,13 @@ def _new_flow() -> dict:
 
 def _init_state():
     defaults = {
+        # ── Classroom import state ──────────────────────────────────────────
+        "xai_google_token":      None,   # OAuth access token (session-only)
+        "xai_google_email":      "",     # authenticated student email
+        "xai_classroom_profile": None,   # StudentXAIProfile from Classroom
+        "xai_import_mode":       "manual",  # "classroom" | "manual"
+        "xai_import_error":      "",     # last import error message
+        # ── Legacy manual-entry flow ────────────────────────────────────────
         "xai_flow":          None,
         "xai_messages":      [],
         "xai_result":        None,
@@ -155,16 +169,30 @@ def _init_state():
         "xai_analysed":      False,
         "xai_profile":       {},
         "xai_step":          0,
-        "xai_curriculum":    {},     # curriculum feature dict
-        "xai_graduation":    None,   # GraduationStatus object
-        "xai_passed_codes":  [],     # matched official course codes passed
-        "xai_failed_codes":  [],     # matched official course codes failed
+        "xai_curriculum":    {},
+        "xai_graduation":    None,
+        "xai_passed_codes":  [],
+        "xai_failed_codes":  [],
     }
     for k, v in defaults.items():
         if k not in st.session_state:
             st.session_state[k] = v
     if st.session_state.xai_flow is None:
         st.session_state.xai_flow = _new_flow()
+
+
+# ── Google OAuth credential helpers ──────────────────────────────────────────
+
+# ── PKCE helpers ─────────────────────────────────────────────────────────────
+import hashlib, base64, secrets as _secrets
+
+def _pkce_pair() -> tuple[str, str]:
+    """Return (code_verifier, code_challenge) for PKCE-S256."""
+    verifier  = base64.urlsafe_b64encode(_secrets.token_bytes(32)).rstrip(b"=").decode()
+    challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(verifier.encode()).digest()
+    ).rstrip(b"=").decode()
+    return verifier, challenge
 
 
 # ── Component-type keyword map for feature extraction ─────────────────────────
@@ -178,96 +206,124 @@ _COMP_KEYWORDS = {
 
 
 def _profile_to_features(profile: dict) -> dict:
-    """Convert collected chat profile to full feature vector."""
-    att    = float(profile.get("avg_attendance",   78))
-    asgn   = float(profile.get("avg_assignments",  72))
-    quiz   = float(profile.get("avg_quizzes",      68))
-    labs   = float(profile.get("avg_labs",         73))
-    mid    = float(profile.get("avg_midterm",      70))
-    fin    = float(profile.get("avg_final",        70))
+    """
+    Convert manual-entry chat profile to the 30-feature dict for XGBoost + SHAP.
+
+    MISSING DATA POLICY
+    -------------------
+    Values that the student did not provide are set to 0.0 — they are NOT filled
+    with invented averages.  Any feature computed from missing inputs is marked in
+    the return dict comment as ESTIMATED or DERIVED.
+
+    Degree requirements are loaded from degree_requirements.json via CurriculumEngine,
+    never from hardcoded PROG_CREDITS / PROG_CORE_CREDITS dicts.
+    """
+    # Read exactly what the student entered; use 0.0 when a field is absent.
+    # 0.0 signals "not available" — downstream display should show "N/A", not "0%".
+    att    = float(profile.get("avg_attendance")   or 0.0)
+    asgn   = float(profile.get("avg_assignments")  or 0.0)
+    quiz   = float(profile.get("avg_quizzes")      or 0.0)
+    labs   = float(profile.get("avg_labs")         or 0.0)
+    mid    = float(profile.get("avg_midterm")      or 0.0)
+    # avg_final in the manual flow is student-entered (predicted/current), not an official exam score
+    fin    = float(profile.get("avg_final")        or 0.0)
     failed = float(profile.get("failed_courses",    0))
-    cr     = float(profile.get("credits_registered",45))
-    sem    = float(profile.get("semester",          3))
+    cr     = float(profile.get("credits_registered", 0))
+    sem    = float(profile.get("semester",           1))
     prog   = str(profile.get("programme", "CSAI"))
 
-    overall = 0.10*quiz + 0.15*asgn + 0.15*labs + 0.30*mid + 0.30*fin
-    overall = float(np.clip(overall, 0, 100))
+    # overall: weighted from available components; zero if no component data
+    avail  = [(quiz, 0.10), (asgn, 0.15), (labs, 0.15), (mid, 0.30), (fin, 0.30)]
+    w_sum  = sum(w for v, w in avail if v > 0)
+    overall = float(np.clip(
+        sum(v * w for v, w in avail if v > 0) / w_sum if w_sum > 0 else 0.0,
+        0, 100,
+    ))
 
     total_courses = max(cr / 3, 1)
-    cp = cr - failed * 3
+    # credits_passed is a rough estimate when student did not pass all courses
+    cp = max(cr - failed * 3, 0)
 
     # Attendance risk score
     threshold = 75.0
-    att_risk = ((threshold - att) / threshold) ** 1.5 if att < threshold else 0.0
+    att_risk = ((threshold - att) / threshold) ** 1.5 if att > 0 and att < threshold else 0.0
 
-    # Performance trend
-    trend = fin - mid
+    # Performance trend (predicted final vs midterm — both from student entry)
+    trend = fin - mid if fin > 0 and mid > 0 else 0.0
 
     # Credit completion ratio
-    ccr = cp / max(cr, 1)
+    ccr = cp / max(cr, 1) if cr > 0 else 0.0
 
-    # Academic consistency
-    scores = [asgn, quiz, labs, mid, fin]
-    row_std = float(np.std(scores))
+    # Academic consistency — only include non-zero components
+    scores_nonzero = [v for v in [asgn, quiz, labs, mid, fin] if v > 0]
+    row_std = float(np.std(scores_nonzero)) if len(scores_nonzero) >= 2 else 0.0
     consist = float(np.clip(1 - row_std / 30, 0, 1))
 
-    # Study efficiency proxy
-    eff = (overall / 100) / (0.35 + 0.1)
-
-    # Semester momentum (no raw data → use trend as proxy)
-    momentum = trend * 0.5
-
+    # Study efficiency — ESTIMATED proxy; 20h/week is not observed data
     prog_enc   = PROG_DIFFICULTY.get(prog, 0.55)
+    study_h_proxy = 15 + prog_enc * 20   # ESTIMATED: 15–26 h/week by programme difficulty
+    norm_h = (study_h_proxy - 5) / (44 - 5)
+    eff = (overall / 100) / (max(norm_h, 0.05) + 0.1) if overall > 0 else 0.0
+
+    # Semester momentum (ESTIMATED — no per-semester history in manual flow)
+    momentum = round(trend * 0.5, 2)
+
     school_enc = {"CS&AI": 2, "ENGR": 1, "SCI": 3, "BUS": 0}.get(SCHOOLS.get(prog, "CS&AI"), 2)
 
-    # ── Curriculum-aware features (approximate — overridden when course codes known) ──
-    total_req  = float(PROG_CREDITS.get(prog, 132))
-    core_req   = float(PROG_CORE_CREDITS.get(prog, 86))
-    cp_safe    = max(cp, 0)
-    grad_prog  = min(cp_safe / total_req, 1.0)
-    exp_prog   = min(sem / 8.0, 1.0)
-    delay_sem  = round((exp_prog - grad_prog) * 8, 2)
-    core_comp  = min(cp_safe / core_req, 1.0)
-    fail_r     = failed / max(total_courses, 1)
-    prereq_prx = float(np.clip(1.0 - fail_r, 0, 1))
-    blocked_pr = float(np.clip(failed * 6 / total_req, 0, 0.5))
-    align_prx  = float(np.clip(ccr * prereq_prx, 0, 1))
-    readiness  = float(np.clip(
-        0.40 * grad_prog + 0.25 * core_comp + 0.20 * prereq_prx + 0.15 * (1 - min(delay_sem / 8, 1)),
+    # ── Degree requirements from official data (degree_requirements.json) ──────
+    curr_eng  = get_curriculum_engine()
+    req       = curr_eng.get_degree_requirements(prog)
+    total_req = float(req.get("total_credits", 132))
+    core_req  = float(req.get("core_credits",  86))
+
+    cp_safe   = max(cp, 0)
+    grad_prog = min(cp_safe / max(total_req, 1), 1.0)
+    exp_prog  = min(sem / 8.0, 1.0)
+    delay_sem = round((exp_prog - grad_prog) * 8, 2)
+    core_comp = min(cp_safe / max(core_req, 1), 1.0)
+    fail_r    = failed / max(total_courses, 1)
+    prereq_px = float(np.clip(1.0 - fail_r, 0, 1))
+    blocked_r = float(np.clip(failed * 6 / max(total_req, 1), 0, 0.5))
+    align_px  = float(np.clip(ccr * prereq_px, 0, 1))
+    readiness = float(np.clip(
+        0.40 * grad_prog + 0.25 * core_comp + 0.20 * prereq_px + 0.15 * (1 - min(delay_sem / 8, 1)),
         0, 1,
     ))
 
     return {
-        "avg_attendance":         att,
-        "avg_assignments":        asgn,
-        "avg_quizzes":            quiz,
-        "avg_labs":               labs,
-        "avg_midterm":            mid,
-        "avg_final":              fin,
-        "avg_overall":            round(overall, 1),
-        "semester":               sem,
-        "credits_registered":     cr,
-        "credits_passed":         max(cp, 0),
-        "failed_courses":         failed,
-        "attendance_risk_score":  round(att_risk, 4),
-        "course_difficulty_index": prog_enc,
-        "failed_course_ratio":    round(fail_r, 4),
-        "performance_trend":      round(trend, 2),
-        "credit_completion_ratio": round(ccr, 4),
-        "academic_consistency":   round(consist, 3),
-        "study_efficiency":       round(eff, 3),
-        "semester_momentum":      round(momentum, 2),
-        "programme_encoded":      prog_enc,
-        "school_encoded":         float(school_enc),
-        "study_hours":            20.0,
-        # Curriculum features (available for display/XAI; not consumed by current models)
+        # ── Student-entered (manual flow) ─────────────────────────────────────
+        "avg_attendance":              att,
+        "avg_assignments":             asgn,
+        "avg_quizzes":                 quiz,
+        "avg_labs":                    labs,
+        "avg_midterm":                 mid,
+        # avg_final here is student-entered current/predicted performance, not official exam
+        "avg_final":                   fin,
+        "avg_overall":                 round(overall, 1),
+        "semester":                    sem,
+        "credits_registered":          cr,
+        "credits_passed":              cp_safe,
+        "failed_courses":              failed,
+        # ── Engineered ───────────────────────────────────────────────────────
+        "attendance_risk_score":       round(att_risk, 4),
+        "course_difficulty_index":     prog_enc,
+        "failed_course_ratio":         round(fail_r, 4),
+        "performance_trend":           round(trend, 2),
+        "credit_completion_ratio":     round(ccr, 4),
+        "academic_consistency":        round(consist, 3),
+        "study_efficiency":            round(float(np.clip(eff, 0, 5)), 3),  # ESTIMATED
+        "semester_momentum":           momentum,                               # ESTIMATED
+        "programme_encoded":           prog_enc,
+        "school_encoded":              float(school_enc),
+        "study_hours":                 round(study_h_proxy, 1),               # ESTIMATED
+        # ── Curriculum (from degree_requirements.json) ────────────────────────
         "graduation_progress_ratio":   round(grad_prog, 4),
         "expected_progress_ratio":     round(exp_prog,  4),
         "graduation_delay_semesters":  delay_sem,
         "core_completion_ratio":       round(core_comp, 4),
-        "prereq_completion_proxy":     round(prereq_prx, 4),
-        "blocked_progress_ratio":      round(blocked_pr, 4),
-        "curriculum_alignment_proxy":  round(align_prx, 4),
+        "prereq_completion_proxy":     round(prereq_px, 4),
+        "blocked_progress_ratio":      round(blocked_r, 4),
+        "curriculum_alignment_proxy":  round(align_px,  4),
         "curriculum_readiness_score":  round(readiness, 4),
     }
 
@@ -425,11 +481,11 @@ def _health_bar(score: float) -> go.Figure:
 
 
 def _trend_chart(features: dict) -> go.Figure:
-    """Simple bar comparing assessment component averages."""
-    labels = ["Attendance", "Assignments", "Quizzes", "Labs", "Midterm", "Final"]
+    """Bar chart of assessment component averages. 'Pred. Final' is an estimate, not official."""
+    labels = ["Attendance", "Assignments", "Quizzes", "Labs", "Midterm", "Pred. Final (est.)"]
     keys   = ["avg_attendance", "avg_assignments", "avg_quizzes",
               "avg_labs", "avg_midterm", "avg_final"]
-    vals   = [features.get(k, 70) for k in keys]
+    vals   = [features.get(k, 0) for k in keys]
     colors = ["#27AE60" if v >= 75 else ("#F39C12" if v >= 60 else "#E74C3C") for v in vals]
 
     fig = go.Figure(go.Bar(
@@ -608,7 +664,9 @@ def _chat_question(flow: dict) -> str:
                 "**What is the course name or code?**  \n"
                 "*(e.g. Machine Learning, CSAI 301)*")
     if phase == "course_credits":
-        return f"**How many credit hours is {c_name} worth?**"
+        return (f"**How many credit hours is {c_name} worth?**  \n"
+                "*(Enter the value from the official course catalog — "
+                "self-reported credits are marked as unverified)*")
     if phase == "course_num_comps":
         return (f"**{c_name}** ({wip.get('course_credits', 3)} cr).  \n"
                 "**How many assessment components does this course have?**  \n"
@@ -714,12 +772,30 @@ def _advance_flow(flow: dict, phase: str, ans, msgs: list) -> bool:
         if not name:
             return False
         wip["course_name"] = name
+        # Attempt to resolve credits from official catalog immediately
+        _ce  = get_curriculum_engine()
+        _code = _ce.match_course_code(name)
+        if _code:
+            _info = _ce.get_course(_code)
+            if _info and _info.get("credits"):
+                wip["course_credits"]          = int(_info["credits"])
+                wip["course_credits_verified"] = True
+                wip["course_matched_code"]     = _code
+                msgs.append(("user", name))
+                msgs.append(("ai",
+                    f"Matched **{_code}** ({_info.get('title', name)}) — "
+                    f"**{wip['course_credits']} credit hours** from the official catalog. "
+                    f"How many assessment components does this course have?"))
+                flow["phase"] = "course_num_comps"
+                return True
+        wip["course_credits_verified"] = False
         msgs.append(("user", name))
         flow["phase"] = "course_credits"
 
     elif phase == "course_credits":
-        wip["course_credits"] = int(ans)
-        msgs.append(("user", f"{ans} credit hours"))
+        wip["course_credits"]          = int(ans)
+        wip["course_credits_verified"] = False  # student-reported, not from official catalog
+        msgs.append(("user", f"{ans} credit hours (unverified — student-reported)"))
         flow["phase"] = "course_num_comps"
 
     elif phase == "course_num_comps":
@@ -828,9 +904,10 @@ def _show_course_summary(flow: dict) -> None:
         a_m   = sum(x["max"]   for x in c["components"])
         rem   = a_m - t_m
         pct   = t_s / t_m * 100 if t_m > 0 else 0
+        verified = c.get("course_credits_verified", False)
         rows.append({
             "Course":          c["name"],
-            "Credits":         c["credits"],
+            "Credits":         f"{c['credits']}" + ("" if verified else " ⚠️ unverified"),
             "Score (taken)":   f"{t_s:.0f} / {t_m:.0f}",
             "Current %":       f"{pct:.0f}%",
             "Remaining Marks": f"{rem:.0f}",
@@ -840,30 +917,403 @@ def _show_course_summary(flow: dict) -> None:
 
 
 def _render_chat_tab():
-    st.markdown('<p class="xai-section-title">AI Academic Analysis Chat</p>',
+    """
+    Primary data entry tab. Attempts Google Classroom import first.
+    Falls back to manual entry if OAuth is not configured or student declines.
+    """
+    import os
+    st.markdown('<p class="xai-section-title">Academic Data — Import or Enter Manually</p>',
                 unsafe_allow_html=True)
 
-    if st.button("↺ Start Over", use_container_width=False):
-        for k in [k for k in st.session_state if k.startswith("xai_")]:
-            del st.session_state[k]
-        st.rerun()
+    # ── OAuth callback detection ──────────────────────────────────────────────
+    # Session state is LOST when Google redirects back (new browser session).
+    # Solution: embed the code_verifier inside the OAuth state parameter so
+    # Google echoes it back in the redirect URL — no session state needed.
+    params = st.query_params
+    if "code" in params and not st.session_state.get("xai_google_token"):
+        os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
+        # Google normalises scope names on return (e.g. "email" → "userinfo.email").
+        # Relax the strict scope-equality check so the exchange doesn't fail.
+        os.environ["OAUTHLIB_RELAX_TOKEN_SCOPE"] = "1"
+        redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", _detect_redirect_uri())
 
-    st.markdown("---")
+        # State format: "<random>|<code_verifier>" — we packed the verifier in on sign-in
+        raw_state = params.get("state", "")
+        if "|" in raw_state:
+            code_verifier = raw_state.split("|", 1)[1]
+        else:
+            code_verifier = ""
 
+        _tok, _err = None, ""
+        try:
+            _flow = build_oauth_flow(redirect_uri)
+            if _flow is None:
+                _err = "OAuth not configured — check GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in .env."
+            else:
+                # Inject echoed state so oauthlib state-check passes on the recreated Flow
+                _flow.oauth2session._state = raw_state
+                fetch_kwargs = {"code": params["code"]}
+                if code_verifier:
+                    fetch_kwargs["code_verifier"] = code_verifier
+                _flow.fetch_token(**fetch_kwargs)
+                _tok = _flow.credentials.token
+        except Exception as _exc:
+            _err = str(_exc)
+
+        st.query_params.clear()
+        if _tok:
+            st.session_state.xai_google_token = _tok
+            st.session_state.xai_import_mode  = "classroom"
+            st.rerun()
+        else:
+            st.session_state.xai_import_error = f"OAuth token exchange failed: {_err}"
+
+    # ── Show import error if present ──────────────────────────────────────────
+    if st.session_state.get("xai_import_error"):
+        st.error(st.session_state.xai_import_error)
+        if st.button("Clear error", key="xai_clear_err"):
+            st.session_state.xai_import_error = ""
+            st.rerun()
+
+    # ── Reset button ──────────────────────────────────────────────────────────
+    col_rst, _ = st.columns([1, 5])
+    with col_rst:
+        if st.button("↺ Reset", use_container_width=True):
+            for k in [k for k in st.session_state if k.startswith("xai_")]:
+                del st.session_state[k]
+            st.rerun()
+
+    # ── If already authenticated and profile not yet built → import ──────────
+    if st.session_state.get("xai_google_token") and not st.session_state.get("xai_classroom_profile"):
+        _run_classroom_import()
+
+    if st.session_state.get("xai_classroom_profile"):
+        _render_classroom_import_status()
+        return
+
+    # ── Google Classroom sign-in card ─────────────────────────────────────────
+    google_configured = _GOOGLE_AVAILABLE and bool(os.getenv("GOOGLE_CLIENT_ID"))
+
+    if google_configured:
+        st.markdown("""
+        <div style="background:linear-gradient(135deg,rgba(66,133,244,.12),rgba(124,58,237,.10));
+             border:1px solid rgba(66,133,244,.35);border-radius:18px;padding:28px 32px;
+             margin:12px 0 20px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+                <span style="font-size:1.8rem;">🎓</span>
+                <div>
+                    <p style="color:#F3EFFF;font-weight:800;font-size:1.15rem;margin:0;">
+                        Connect Google Classroom
+                    </p>
+                    <p style="color:#93C5FD;font-size:.82rem;margin:4px 0 0;">
+                        Zewail City University of Science and Technology
+                    </p>
+                </div>
+            </div>
+            <p style="color:#CBD5E1;font-size:.88rem;line-height:1.6;margin:0;">
+                Sign in with your <strong style="color:#F3EFFF;">@zewailcity.edu.eg</strong> account.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("Sign in with Google Classroom →", type="primary",
+                     use_container_width=True, key="gc_signin_btn"):
+            redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", _detect_redirect_uri())
+            flow = build_oauth_flow(redirect_uri)
+            if flow:
+                code_verifier, code_challenge = _pkce_pair()
+                packed_state = f"{_secrets.token_urlsafe(16)}|{code_verifier}"
+                auth_url, _ = flow.authorization_url(
+                    prompt="select_account",
+                    hd="zewailcity.edu.eg",
+                    access_type="online",
+                    state=packed_state,
+                    code_challenge=code_challenge,
+                    code_challenge_method="S256",
+                )
+                st.markdown(
+                    f'<meta http-equiv="refresh" content="0; url={auth_url}">',
+                    unsafe_allow_html=True,
+                )
+                st.stop()
+            else:
+                st.error("Failed to build OAuth flow. Check GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in .env.")
+
+    else:
+        st.warning("Google Classroom integration is not configured. "
+                   "Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env.")
+
+
+def _detect_redirect_uri() -> str:
+    """Detect the current Streamlit app URL for OAuth redirect."""
+    import os
+    port = os.getenv("STREAMLIT_SERVER_PORT", "8501")
+    return f"http://localhost:{port}"
+
+
+def _run_classroom_import() -> None:
+    """Fetch Classroom data and build StudentXAIProfile. Called once after OAuth."""
+    token = st.session_state.get("xai_google_token", "")
+    if not token:
+        return
+
+    with st.spinner("Importing your academic history from Google Classroom…"):
+        try:
+            importer = ClassroomImporter(token)
+            email    = importer.get_user_email()
+            records  = importer.fetch_all_records()
+
+            builder = StudentProfileBuilder()
+            profile = builder.build(records, user_email=email)
+
+            st.session_state.xai_google_email      = email
+            st.session_state.xai_classroom_profile = profile
+            st.session_state.xai_import_error      = ""
+        except Exception as exc:
+            st.session_state.xai_import_error = f"Import failed: {exc}"
+            st.session_state.xai_google_token = None
+
+
+def _render_classroom_import_status() -> None:
+    """Import summary focused on course-level performance analytics."""
+    p: StudentXAIProfile = st.session_state.xai_classroom_profile
+    email = st.session_state.get("xai_google_email", "")
+
+    graded = [r for r in p.course_records if r.overall_pct > 0]
+    total_courses = len(p.course_records)
+    graded_count  = len(graded)
+
+    # Performance category counts
+    cat_counts = {}
+    for r in graded:
+        cat_counts[r.performance_category] = cat_counts.get(r.performance_category, 0) + 1
+
+    traj_map = {"improving": ("📈", "#6EE7B7"), "stable": ("➡️", "#93C5FD"),
+                "declining": ("📉", "#FCA5A5"), "volatile": ("⚡", "#FDE68A")}
+    traj_icon, traj_clr = traj_map.get(p.performance_trend, ("➡️", "#93C5FD"))
+
+    # ── Import banner ─────────────────────────────────────────────────────────
+    # Count unique academic terms (not unique section strings)
+    term_set    = set(
+        r.term_label or r.course_section
+        for r in p.course_records
+        if (r.term_label or r.course_section)
+    )
+    n_terms = len(term_set)
+    st.markdown(
+        f'<div style="background:linear-gradient(135deg,rgba(13,7,32,.97),rgba(30,15,60,.97));'
+        f'border:1px solid rgba(99,102,241,.35);border-radius:16px;padding:14px 20px;'
+        f'margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;'
+        f'flex-wrap:wrap;gap:10px;">'
+        f'<div style="display:flex;align-items:center;gap:10px;">'
+        f'<span style="font-size:1.2rem;">📊</span>'
+        f'<span style="color:#A5B4FC;font-weight:800;font-size:1rem;">Learning Analytics Ready</span>'
+        f'<span style="color:#94A3B8;font-size:.80rem;">&nbsp;—&nbsp;{email}</span>'
+        f'</div>'
+        f'<span style="color:#CBD5E1;font-size:.82rem;">'
+        f'{total_courses} courses &nbsp;·&nbsp; {n_terms} academic terms &nbsp;·&nbsp; {graded_count} graded'
+        f'</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    # ── Four Coursework Analytics Indices ────────────────────────────────────
+    st.markdown(
+        '<p style="color:#A5B4FC;font-size:.78rem;font-weight:700;'
+        'text-transform:uppercase;letter-spacing:.08em;margin:10px 0 6px;">'
+        '📐 Coursework Analytics Indices</p>',
+        unsafe_allow_html=True,
+    )
+    i1, i2, i3, i4 = st.columns(4)
+    i1.metric(
+        "Performance Index",
+        f"{p.coursework_performance_index:.1f}/100" if p.coursework_performance_index > 0 else "—",
+        help="Credit-weighted average coursework score across all graded courses.",
+    )
+    i2.metric(
+        "Engagement Index",
+        f"{p.engagement_index:.1f}/100" if p.engagement_index > 0 else "—",
+        help="Average of attendance, assignment, and lab scores — measures active participation.",
+    )
+    i3.metric(
+        "Consistency Index",
+        f"{p.consistency_index:.1f}/100" if p.consistency_index > 0 else "—",
+        help="How consistent performance is across courses. Higher = more stable.",
+    )
+    i4.metric(
+        "Risk Index",
+        f"{p.risk_index:.1f}%" if p.risk_index > 0 else "0%",
+        help="Percentage of graded courses in weak or at-risk performance categories.",
+    )
+
+    # ── Performance distribution — Plotly donut chart ────────────────────────
+    _CAT_CFG = [
+        ("excellent",   "#22C55E", "Excellent ≥85%"),
+        ("strong",      "#3B82F6", "Strong ≥70%"),
+        ("average",     "#A78BFA", "Average ≥55%"),
+        ("weak",        "#F59E0B", "Weak ≥40%"),
+        ("at_risk",     "#EF4444", "At Risk <40%"),
+        ("in_progress", "#64748B", "In Progress"),
+        ("no_data",     "#2D3748", "No Data"),
+    ]
+    _donut_labels = []
+    _donut_values = []
+    _donut_colors = []
+    for cat, clr, lbl in _CAT_CFG:
+        n = cat_counts.get(cat, 0)
+        if n > 0:
+            _donut_labels.append(lbl)
+            _donut_values.append(n)
+            _donut_colors.append(clr)
+
+    if _donut_values:
+        _total_shown = sum(_donut_values)
+        _fig_donut = go.Figure(go.Pie(
+            labels=_donut_labels,
+            values=_donut_values,
+            hole=0.62,
+            marker=dict(colors=_donut_colors,
+                        line=dict(color="rgba(13,7,32,1)", width=3)),
+            textinfo="percent",
+            textfont=dict(size=11, color="#F3EFFF"),
+            hovertemplate="<b>%{label}</b><br>%{value} courses (%{percent})<extra></extra>",
+            sort=False,
+        ))
+        _fig_donut.add_annotation(
+            text=f"<b style='font-size:22px'>{_total_shown}</b><br><span style='font-size:11px'>Courses</span>",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(color="#F3EFFF", size=14),
+        )
+        _fig_donut.update_layout(
+            height=280,
+            margin=dict(t=10, b=10, l=10, r=10),
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            legend=dict(
+                font=dict(color="#CBD5E1", size=11),
+                bgcolor="rgba(0,0,0,0)",
+                orientation="v",
+                x=1.02, y=0.5,
+                xanchor="left",
+                yanchor="middle",
+            ),
+            showlegend=True,
+        )
+        st.markdown(
+            '<p style="color:#A5B4FC;font-size:.78rem;font-weight:700;'
+            'text-transform:uppercase;letter-spacing:.08em;margin:14px 0 4px;">'
+            '🎯 Course Performance Distribution</p>',
+            unsafe_allow_html=True,
+        )
+        st.plotly_chart(_fig_donut, use_container_width=True, config={"displayModeBar": False})
+
+    # ── Performance trend pill (skip "volatile" — too few semesters to be meaningful) ──
+    if p.performance_trend and p.performance_trend != "volatile":
+        _traj_map = {
+            "improving": ("📈", "#6EE7B7", "Improving"),
+            "stable":    ("➡️",  "#93C5FD", "Stable"),
+            "declining": ("📉", "#FCA5A5", "Declining"),
+        }
+        t_icon, t_clr, t_label = _traj_map.get(p.performance_trend, ("➡️", "#93C5FD", p.performance_trend.capitalize()))
+        st.markdown(
+            f'<div style="margin:4px 0 4px;font-size:.84rem;color:#CBD5E1;">'
+            f'Performance trend across semesters: '
+            f'<span style="color:{t_clr};font-weight:700;">{t_icon} {t_label}</span>'
+            f'&nbsp;&nbsp;·&nbsp;&nbsp;'
+            f'<span style="color:#94A3B8;">{p.programme or "—"}</span>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    # ── Credit Audit Report ───────────────────────────────────────────────────
+    mr = getattr(p, "matching_report", {})
+    if mr:
+        total_c     = mr.get("total_courses", 0)
+        raw_c       = mr.get("raw_course_count", total_c)
+        by_sec      = mr.get("matched_by_section", 0)
+        by_name     = mr.get("matched_by_name", 0)
+        unmatched   = mr.get("still_unmatched", 0)
+        duplicates  = mr.get("duplicates_merged", 0)
+        total_cr    = mr.get("total_verified_credits", 0)
+        accuracy    = mr.get("accuracy_pct", 0.0)
+        with st.expander(
+            f"📋 Credit Audit Report — {total_cr} verified credits · {accuracy:.0f}% matched ({unmatched} unresolved)",
+            expanded=(unmatched > 0),
+        ):
+            ca1, ca2, ca3, ca4, ca5 = st.columns(5)
+            ca1.metric("Classroom Entries",  raw_c,
+                       help="Total course entries imported from Google Classroom")
+            ca2.metric("After Dedup",        total_c,
+                       help=f"{duplicates} duplicate/retake/lab entries merged")
+            ca3.metric("Verified Credits",   total_cr,
+                       help="Sum of catalog credits for all matched courses")
+            ca4.metric("Matched",            by_sec + by_name,
+                       help=f"By section code: {by_sec}  ·  By title/alias: {by_name}")
+            ca5.metric("Unresolved",         unmatched,
+                       delta=f"-{unmatched}" if unmatched else None,
+                       delta_color="inverse")
+
+            if duplicates > 0:
+                st.caption(
+                    f"ℹ️ {duplicates} Classroom entr{'ies' if duplicates != 1 else 'y'} merged "
+                    f"(retakes kept best attempt · lecture+lab deduplicated to one course entry)."
+                )
+
+            matched_list = mr.get("matched_courses", [])
+            if matched_list:
+                import pandas as pd
+                st.markdown("**Matched Courses (handbook-verified)**")
+                st.dataframe(
+                    pd.DataFrame(matched_list),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+
+            if mr.get("unmatched_names"):
+                st.markdown("**Unresolved courses (not in handbook):**")
+                for name in mr["unmatched_names"]:
+                    if name and name.strip():
+                        st.markdown(f"- {name}")
+
+    if p.credits_unresolved > 0 and not mr:
+        st.caption(
+            f"ℹ️ {p.credits_unresolved} course(s) could not be matched to the official catalog "
+            f"and are excluded from curriculum grouping."
+        )
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # NOTE: No pass/fail counts, no credit totals, no GPA, no transcript status.
+    # This panel describes HOW the student is performing, not whether they passed.
+    # ──────────────────────────────────────────────────────────────────────────
+
+    if not st.session_state.xai_analysed:
+        if st.button("🔍  Run Full XAI Analysis", type="primary", use_container_width=True,
+                     key="run_xai_btn"):
+            _run_analysis_from_classroom()
+            st.rerun()
+    else:
+        st.markdown("""
+        <div style="background:rgba(16,185,129,.10);border:1px solid rgba(16,185,129,.30);
+             border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:1.2rem;">✅</span>
+            <span style="color:#6EE7B7;font-weight:600;font-size:.9rem;">
+                Analysis complete — switch to <strong>Academic Dashboard</strong> to view results.
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+def _render_manual_entry_flow() -> None:
+    """Existing manual course-entry chat flow (unchanged from original)."""
     flow = st.session_state.xai_flow
     msgs = st.session_state.xai_messages
     step = st.session_state.xai_step
 
-    # ── Conversation history (bold markdown converted to <strong>) ────────────
     for role, msg in msgs:
         tag = "xai-chat-ai" if role == "ai" else "xai-chat-msg"
         ico = "🤖" if role == "ai" else "👤"
-        st.markdown(
-            f'<div class="{tag}">{ico} {_md(msg)}</div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown(f'<div class="{tag}">{ico} {_md(msg)}</div>', unsafe_allow_html=True)
 
-    # ── Done state ───────────────────────────────────────────────────────────
     if flow["phase"] == "done":
         if not st.session_state.xai_analysed:
             _show_course_summary(flow)
@@ -871,20 +1321,14 @@ def _render_chat_tab():
                 _run_analysis()
                 st.rerun()
         else:
-            st.success(
-                "Analysis complete! Switch to the **Academic Dashboard** tab to see your results."
-            )
+            st.success("Analysis complete! Switch to Academic Dashboard.")
         return
 
-    # ── Current question rendered with st.markdown (supports bold/italic) ────
     q_text = _chat_question(flow)
     wtype, wkwargs = _widget_type(flow)
 
     with st.container():
-        st.markdown(
-            f'<div class="xai-chat-ai">🤖</div>',
-            unsafe_allow_html=True,
-        )
+        st.markdown(f'<div class="xai-chat-ai">🤖</div>', unsafe_allow_html=True)
         st.markdown(q_text)
 
     col_inp, col_btn = st.columns([4, 1])
@@ -898,6 +1342,102 @@ def _render_chat_tab():
             else:
                 st.session_state.xai_step += 1
                 st.rerun()
+
+
+def _run_analysis_from_classroom() -> None:
+    """
+    Run the full XAI pipeline from an imported StudentXAIProfile.
+    Source of truth: Google Classroom data via ClassroomImporter.
+    The study plan is used only for curriculum gap context, not for inference.
+    """
+    cp: StudentXAIProfile = st.session_state.xai_classroom_profile
+    if cp is None:
+        return
+
+    builder  = StudentProfileBuilder()
+    features = builder.profile_to_feature_dict(cp)
+
+    # Build legacy profile dict for downstream compatibility
+    # avg_final here maps to avg_predicted_final (Classroom-based estimate, not official exam)
+    profile = {
+        "programme":           cp.programme,
+        "semester":            cp.actual_semester_number,
+        "avg_attendance":      cp.avg_attendance,
+        "avg_assignments":     cp.avg_assignments,
+        "avg_quizzes":         cp.avg_quizzes,
+        "avg_labs":            cp.avg_labs,
+        "avg_midterm":         cp.avg_midterm,
+        "avg_final":           cp.avg_predicted_final,   # PREDICTED — not official
+        "failed_courses":      cp.insufficient_data_count,
+        "credits_registered":  cp.credits_total_attempted,
+        "credits_passed":      cp.credits_completed_coursework,
+        "passed_course_codes": cp.completed_codes,
+        "failed_course_codes": cp.insufficient_data_codes,
+    }
+    st.session_state.xai_profile = profile
+
+    with st.spinner("Running XAI analysis on Classroom data…"):
+        eng    = get_engine()
+        result = eng.explain_student(features, cp.user_email or cp.programme or "Student")
+
+        curr_eng = get_curriculum_engine()
+        curriculum_features = curr_eng.compute_features(
+            programme         = cp.programme,
+            passed_codes      = cp.completed_codes,
+            failed_codes      = cp.insufficient_data_codes,
+            credits_passed    = float(cp.credits_completed_coursework),
+            semester          = cp.actual_semester_number,
+            total_credits_reg = float(cp.credits_total_attempted),
+        )
+        curriculum_narratives = curr_eng.get_curriculum_narratives(
+            curriculum_features = curriculum_features,
+            programme           = cp.programme,
+            passed_codes        = cp.completed_codes,
+            failed_codes        = cp.insufficient_data_codes,
+            predicted_gpa       = result.predicted_gpa,
+        )
+        curriculum_recs = curr_eng.generate_curriculum_recs(
+            programme           = cp.programme,
+            curriculum_features = curriculum_features,
+            passed_codes        = cp.completed_codes,
+            failed_codes        = cp.insufficient_data_codes,
+            predicted_gpa       = result.predicted_gpa,
+            semester            = cp.actual_semester_number,
+        )
+        graduation_status = curr_eng.get_graduation_status(
+            programme      = cp.programme,
+            credits_passed = float(cp.credits_completed_coursework),
+            semester       = cp.actual_semester_number,
+            predicted_gpa  = result.predicted_gpa,
+        )
+        result.curriculum_narratives = curriculum_narratives
+
+        curriculum_shap_values = curr_eng.get_curriculum_shap_values(
+            curriculum_features = curriculum_features,
+            predicted_gpa       = result.predicted_gpa,
+        )
+        curriculum_feature_table = curr_eng.get_curriculum_feature_table(
+            curriculum_features = curriculum_features,
+            programme           = cp.programme,
+        )
+        recs = generate_recommendations(
+            features,
+            result.predicted_gpa,
+            result.predicted_risk,
+            result.top_negative,
+            result.top_positive,
+            curriculum_recs = curriculum_recs,
+        )
+
+    st.session_state.xai_result           = result
+    st.session_state.xai_recs             = recs
+    st.session_state.xai_analysed         = True
+    st.session_state.xai_curriculum       = curriculum_features
+    st.session_state.xai_graduation       = graduation_status
+    st.session_state.xai_passed_codes     = cp.completed_codes
+    st.session_state.xai_failed_codes     = cp.insufficient_data_codes
+    st.session_state.xai_curriculum_shap  = curriculum_shap_values
+    st.session_state.xai_curriculum_table = curriculum_feature_table
 
 
 def _run_analysis():
@@ -999,6 +1539,166 @@ def _run_analysis():
 #  Tab 2: Academic Dashboard
 # ════════════════════════════════════════════════════════════════════════════════
 
+# ════════════════════════════════════════════════════════════════════════════════
+#  Classroom-sourced analytics panels
+# ════════════════════════════════════════════════════════════════════════════════
+
+
+def _render_course_performance_table() -> None:
+    """
+    Course-level performance table from actual Classroom history.
+    Groups courses as: Strong (≥85%) | Passing (70–85%) | Weak (60–70%) |
+    At Risk (<60%, in progress) | Failed
+    All values sourced directly from Classroom grade data.
+    """
+    cp: StudentXAIProfile = st.session_state.get("xai_classroom_profile")
+    if cp is None or not cp.course_records:
+        return
+
+    st.markdown('<p class="xai-section-title">Course Performance History</p>',
+                unsafe_allow_html=True)
+
+    # Build table rows — Classroom coursework data only, NOT academic outcomes
+    _STATUS_LABEL = {
+        "completed_coursework":   "✅ Completed Coursework",
+        "coursework_in_progress": "🔄 In Progress",
+        "insufficient_data":      "📊 Insufficient Data",
+    }
+    _PERF_LABEL = {
+        "excellent":   "🌟 Excellent  (≥85%)",
+        "strong":      "💪 Strong     (≥70%)",
+        "average":     "📈 Average    (≥55%)",
+        "weak":        "⚠️ Weak       (≥40%)",
+        "at_risk":     "🔴 At Risk    (<40%)",
+        "in_progress": "🔄 In Progress",
+        "no_data":     "—",
+    }
+    rows = []
+    for r in cp.course_records:
+        credits_cell = str(r.credits) if r.credits_verified else f"{r.credits or '?'} ⚠️"
+        rows.append({
+            "Course":               r.course_name,
+            "Code":                 r.matched_code or "❓ unmatched",
+            "Section":              r.course_section or "—",
+            "Credits":              credits_cell,
+            "Status":               _STATUS_LABEL.get(r.pass_status, r.pass_status),
+            "Coursework Score":     f"{r.overall_pct:.0f}%" if r.overall_pct > 0 else "—",
+            "Assignments":          f"{r.assignments_avg:.0f}%" if r.assignments_avg > 0 else "—",
+            "Quizzes":              f"{r.quizzes_avg:.0f}%" if r.quizzes_avg > 0 else "—",
+            "Labs":                 f"{r.labs_avg:.0f}%" if r.labs_avg > 0 else "—",
+            "Midterm":              f"{r.midterm_score:.0f}%" if r.midterm_score > 0 else "—",
+            "Attendance":           f"{r.attendance_pct:.0f}%" if r.attendance_pct > 0 else "—",
+            "Pred. Final (info)":   (
+                f"{r.predicted_final_score:.1f}/40" if r.predicted_final_score > 0 else "—"
+            ),
+            "Performance Category": _PERF_LABEL.get(r.performance_category, "—"),
+        })
+
+    if rows:
+        import pandas as pd
+        df = pd.DataFrame(rows)
+        st.dataframe(df, use_container_width=True, hide_index=True)
+
+    # Summary chips — performance categories from Classroom data only
+    n_strong  = len(cp.strong_courses)
+    n_weak    = len(cp.weak_courses)
+    n_risk    = len(cp.risk_courses)
+    n_insuff  = cp.insufficient_data_count
+    if n_strong or n_weak or n_risk or n_insuff:
+        parts = []
+        if n_strong: parts.append(f"**{n_strong}** excellent/strong (≥70%)")
+        if n_weak:   parts.append(f"**{n_weak}** weak (40–55%)")
+        if n_risk:   parts.append(f"**{n_risk}** at risk (<40%)")
+        if n_insuff: parts.append(f"**{n_insuff}** insufficient data")
+        st.markdown(" &nbsp;|&nbsp; ".join(parts))
+    st.caption(
+        "⚠️ Performance categories describe observed Classroom activity only. "
+        "They do NOT represent official academic pass/fail outcomes. "
+        "Official grades are issued by the registrar after final exams."
+    )
+
+
+def _render_semester_gpa_trend() -> None:
+    """
+    Semester-by-semester coursework performance trend from Classroom history.
+    Each point is the credit-weighted average coursework score for that semester.
+    These are Classroom performance scores — NOT official GPA values.
+    """
+    cp: StudentXAIProfile = st.session_state.get("xai_classroom_profile")
+    if cp is None or len(cp.semester_performance_scores) < 2:
+        return
+
+    st.markdown('<p class="xai-section-title">Semester Performance Trend (Coursework)</p>',
+                unsafe_allow_html=True)
+
+    labels  = cp.semester_labels or [f"Sem {i+1}" for i in range(len(cp.semester_performance_scores))]
+    credits = cp.semester_credits or [0] * len(cp.semester_performance_scores)
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=labels, y=cp.semester_performance_scores,
+        mode="lines+markers+text",
+        line=dict(color=PURPLE_L, width=3),
+        marker=dict(size=10, color=PURPLE_L),
+        text=[f"{s:.0f}%" for s in cp.semester_performance_scores],
+        textposition="top center",
+        textfont=dict(color="#F3EFFF", size=11),
+        name="Coursework Score",
+        hovertemplate="<b>%{x}</b><br>Coursework Score: %{y:.1f}%<extra></extra>",
+    ))
+    # Reference lines for performance categories
+    fig.add_hline(y=70.0, line_dash="dot", line_color="rgba(39,174,96,.7)",
+                  annotation_text="Strong (70%)",
+                  annotation_font_color="#F39C12", annotation_position="bottom right")
+    # Credit load bars (secondary axis)
+    if any(c > 0 for c in credits):
+        fig.add_trace(go.Bar(
+            x=labels, y=credits,
+            name="Credit Load",
+            marker_color="rgba(124,58,237,.2)",
+            yaxis="y2",
+            hovertemplate="<b>%{x}</b><br>Credits: %{y}<extra></extra>",
+        ))
+        fig.update_layout(
+            yaxis2=dict(
+                overlaying="y", side="right",
+                title=dict(text="Credits", font=dict(size=10, color="#A78BFA")),
+                tickfont=dict(color="#A78BFA", size=9),
+                showgrid=False,
+                range=[0, max(credits) * 3],
+            )
+        )
+
+    fig.update_layout(
+        height=300,
+        margin=dict(t=20, b=30, l=10, r=60),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(13,7,32,0.6)",
+        font_color="#F3EFFF",
+        yaxis=dict(range=[0, 105], gridcolor="rgba(124,58,237,.15)",
+                   title=dict(text="Coursework Score (%)", font=dict(size=10, color="#A78BFA"))),
+        xaxis=dict(gridcolor="rgba(0,0,0,0)"),
+        showlegend=True,
+        legend=dict(
+            bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#A78BFA", size=10),
+        ),
+    )
+    st.plotly_chart(fig, use_container_width=True, key="sem_gpa_trend")
+
+    traj_msgs = {
+        "improving": "Your coursework scores have been improving over recent semesters.",
+        "declining": "Your coursework scores have been declining — review weak courses.",
+        "volatile":  "Your coursework performance fluctuates significantly between semesters.",
+        "stable":    "Your coursework performance has been consistent across semesters.",
+    }
+    st.caption(traj_msgs.get(cp.performance_trend, ""))
+    st.caption(
+        "⚠️ These are Classroom coursework scores, not official GPA values. "
+        "Official GPA is issued by the registrar after final exams."
+    )
+
+
 def _render_dashboard_tab():
     st.markdown('<p class="xai-section-title">Academic Health Dashboard</p>', unsafe_allow_html=True)
 
@@ -1010,12 +1710,25 @@ def _render_dashboard_tab():
     profile  = st.session_state.xai_profile
     features = _profile_to_features(profile)
 
+    # ── Learning Analytics banner ────────────────────────────────────────────────
+    st.markdown("""
+    <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.35);
+         border-radius:12px;padding:10px 16px;margin-bottom:14px;font-size:.83rem;color:#A5B4FC;">
+        📊 <strong>Learning Analytics &amp; XAI</strong> — All metrics are derived from
+        Google Classroom coursework activity (assignments, quizzes, labs, midterms, attendance).
+        Google Classroom does <strong>not</strong> contain official final exam results or
+        registrar-confirmed grades.  These are <strong>coursework analytics</strong>,
+        not official academic transcripts.
+    </div>
+    """, unsafe_allow_html=True)
+
     # ── Row 1: Key metrics ───────────────────────────────────────────────────────
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        fig = _gauge_chart(result.predicted_gpa, 4.0, "Predicted GPA",
-                           "#27AE60" if result.predicted_gpa >= 2.5 else
-                           ("#F39C12" if result.predicted_gpa >= 2.0 else "#E74C3C"))
+        cp_profile = st.session_state.get("xai_classroom_profile")
+        cpi = cp_profile.coursework_performance_index if cp_profile else result.academic_health
+        fig = _gauge_chart(cpi, 100, "Coursework Perf. Index",
+                           "#27AE60" if cpi >= 70 else ("#F39C12" if cpi >= 55 else "#E74C3C"))
         st.plotly_chart(fig, use_container_width=True, key="gauge_gpa")
 
     with c2:
@@ -1052,19 +1765,25 @@ def _render_dashboard_tab():
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Classroom-specific panels (only shown when Classroom data is present) ────
+    if st.session_state.get("xai_classroom_profile"):
+        _render_course_performance_table()
+        _render_semester_gpa_trend()
+        st.markdown("---")
+
     # ── Row 2: Radar + Bar chart ─────────────────────────────────────────────────
     col_radar, col_bar = st.columns(2)
 
     with col_radar:
-        st.markdown("**Performance Profile**")
-        cats = ["Attendance", "Assignments", "Quizzes", "Labs", "Midterm", "Final"]
+        st.markdown("**Performance Profile** *(all values predicted/estimated)*")
+        cats = ["Attendance", "Assignments", "Quizzes", "Labs", "Midterm", "Pred. Final (est.)"]
         vals = [
             features["avg_attendance"],
             features["avg_assignments"],
             features["avg_quizzes"],
             features["avg_labs"],
             features["avg_midterm"],
-            features["avg_final"],
+            features["avg_final"],   # model key "avg_final" = avg_predicted_final
         ]
         st.plotly_chart(_radar_chart(cats, vals), use_container_width=True, key="radar")
 
@@ -1099,105 +1818,6 @@ def _render_dashboard_tab():
                 &nbsp; {label} = {fv:.1f}
             </div>""", unsafe_allow_html=True)
 
-    # ── Curriculum Intelligence Panel ────────────────────────────────────────────
-    st.markdown("---")
-    st.markdown('<p class="xai-section-title">Curriculum Progress Analysis</p>',
-                unsafe_allow_html=True)
-
-    grad_status  = st.session_state.get("xai_graduation")
-    curr_feat    = st.session_state.get("xai_curriculum", {})
-    passed_codes = st.session_state.get("xai_passed_codes", [])
-    failed_codes = st.session_state.get("xai_failed_codes", [])
-
-    if grad_status:
-        # Graduation progress bar
-        st.markdown(f"**Graduation Progress — {grad_status.programme}**")
-        st.progress(
-            min(int(grad_status.progress_ratio * 100), 100),
-            text=(f"{grad_status.credits_passed} / {grad_status.total_required} credits "
-                  f"({grad_status.progress_ratio*100:.0f}%)  —  "
-                  f"{grad_status.credits_remaining} credits remaining"),
-        )
-
-        # Curriculum metric chips
-        cc1, cc2, cc3, cc4 = st.columns(4)
-        delay = curr_feat.get("graduation_delay_semesters", 0)
-        cc1.metric("Graduation Pace",
-                   "On Track" if delay <= 0.5 else f"{delay:.1f} sem behind",
-                   delta=None)
-        cc2.metric("Core Courses",
-                   f"{curr_feat.get('core_course_completion_ratio', 0)*100:.0f}%",
-                   delta=None)
-        cc3.metric("Prereq Completion",
-                   f"{curr_feat.get('prerequisite_completion_ratio', 1)*100:.0f}%",
-                   delta=None)
-        blocked_cr = curr_feat.get("blocked_credit_hours", 0)
-        cc4.metric("Blocked Credits",
-                   f"{blocked_cr} cr" if blocked_cr > 0 else "None",
-                   delta=None)
-
-        # Graduation status message
-        status_color = "#27AE60" if grad_status.on_track else "#F39C12"
-        if not grad_status.graduation_gpa_ok:
-            status_color = "#E74C3C"
-        st.markdown(f"""
-        <div class="xai-card" style="border-color:{status_color}44;margin-top:12px;">
-            <p style="color:{status_color};font-weight:600;margin:0;font-size:.92rem;">
-                {grad_status.message}
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # ── Curriculum impact chart ───────────────────────────────────────────
-        curr_shap = st.session_state.get("xai_curriculum_shap", {})
-        if curr_shap:
-            st.markdown("**Curriculum Factor Impact** *(estimated GPA contribution per factor)*")
-            fig_curr = _curriculum_impact_chart(curr_shap)
-            if fig_curr:
-                st.plotly_chart(fig_curr, use_container_width=True, key="curr_impact_dash")
-            st.caption(
-                "Green bars = factors supporting your academic trajectory. "
-                "Red bars = curriculum factors reducing predicted academic outcome. "
-                "Grounded in official Zewail degree requirements and regulations."
-            )
-
-        # ── Curriculum feature status table ──────────────────────────────────
-        curr_table = st.session_state.get("xai_curriculum_table", [])
-        if curr_table:
-            st.markdown("**Curriculum Intelligence Status**")
-            import pandas as pd
-            st.dataframe(
-                pd.DataFrame(curr_table),
-                use_container_width=True,
-                hide_index=True,
-            )
-
-        # Blocked prerequisite chains
-        blocked_entries = get_curriculum_engine().get_blocked_courses(failed_codes, profile.get("programme","CSAI"))
-        if blocked_entries:
-            st.markdown("**Blocked Academic Paths (due to failed prerequisites)**")
-            for entry in blocked_entries[:3]:
-                deps_str = ", ".join(entry["direct_blocked"][:4])
-                st.markdown(f"""
-                <div class="xai-card" style="border-color:rgba(231,76,60,.3);padding:12px 16px;">
-                    <span style="color:#E74C3C;font-weight:700;">{entry['failed_course']}</span>
-                    <span style="color:#DDD6FE;font-size:.85rem;"> — {entry['failed_title']}</span><br>
-                    <span style="color:#A78BFA;font-size:.82rem;">
-                        Blocks: {deps_str or "no direct dependents found"}
-                        &nbsp;|&nbsp; {entry['blocked_credit_hours']} blocked credits
-                    </span>
-                </div>
-                """, unsafe_allow_html=True)
-    else:
-        # Fallback: simple progress bar using feature_engineer data
-        from feature_engineering.feature_engineer import PROG_CREDITS
-        prog = profile.get("programme", "CSAI")
-        total_creds    = PROG_CREDITS.get(prog, 132)
-        cr_passed_val  = features["credits_passed"]
-        grad_readiness = (cr_passed_val / total_creds) * 100
-        st.markdown("**Graduation Progress**")
-        st.progress(min(int(grad_readiness), 100),
-                    text=f"{cr_passed_val:.0f} / {total_creds} credits passed ({grad_readiness:.1f}%)")
 
 
 # ════════════════════════════════════════════════════════════════════════════════
@@ -1215,7 +1835,7 @@ def _render_recommendations_tab():
     PRIO_COLOR = {1: "#E74C3C", 2: "#E67E22", 3: "#F1C40F", 4: "#27AE60"}
     PRIO_LABEL = {1: "Critical", 2: "High", 3: "Medium", 4: "Low"}
 
-    CURRICULUM_CATEGORIES = {"Curriculum", "Prerequisites", "Graduation", "Degree Progress"}
+    _SKIP_CATEGORIES = {"Curriculum", "Prerequisites", "Graduation", "Degree Progress"}
 
     def _rec_card(r):
         color = PRIO_COLOR.get(r.priority, "#A78BFA")
@@ -1235,25 +1855,7 @@ def _render_recommendations_tab():
         </div>
         """, unsafe_allow_html=True)
 
-    curriculum_recs = [r for r in recs if r.category in CURRICULUM_CATEGORIES]
-    academic_recs   = [r for r in recs if r.category not in CURRICULUM_CATEGORIES]
-
-    if curriculum_recs:
-        st.markdown("""
-        <div style="background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.3);
-                    border-radius:10px;padding:10px 16px;margin-bottom:16px;">
-            <span style="color:#C4B5FD;font-weight:700;font-size:.95rem;">
-                📋 Curriculum & Degree Progress Advisories
-            </span>
-            <span style="color:#A78BFA;font-size:.80rem;margin-left:8px;">
-                Based on official Zewail City programme requirements
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
-        for r in curriculum_recs:
-            _rec_card(r)
-        if academic_recs:
-            st.divider()
+    academic_recs = [r for r in recs if r.category not in _SKIP_CATEGORIES]
 
     if academic_recs:
         st.markdown("""
@@ -1269,8 +1871,7 @@ def _render_recommendations_tab():
         """, unsafe_allow_html=True)
         for r in academic_recs:
             _rec_card(r)
-
-    if not curriculum_recs and not academic_recs:
+    else:
         st.info("No recommendations generated. Complete the AI Analysis Chat first.")
 
 
@@ -1375,17 +1976,16 @@ def _render_whatif_tab():
     fig = _whatif_chart(sim.original_gpa, scenario_gpas, scenario_labels)
     st.plotly_chart(fig, use_container_width=True, key="whatif_chart")
 
-    # ── Curriculum What-If Simulator ────────────────────────────────────────────
+    # ── Course Scenario Simulator ────────────────────────────────────────────────
     st.divider()
-    st.markdown("**Curriculum What-If — Course Scenario Simulator**")
+    st.markdown("**Course Scenario Simulator**")
     st.markdown(
         "Simulate how passing, failing, retaking, or postponing a course affects "
-        "your graduation timeline and which future courses become blocked or unblocked."
+        "which future courses become available or blocked."
     )
 
     passed_codes = st.session_state.get("xai_passed_codes", [])
     failed_codes = st.session_state.get("xai_failed_codes", [])
-    graduation   = st.session_state.get("xai_graduation")
     curriculum_f = st.session_state.get("xai_curriculum", {})
     credits_passed = profile.get("credits_passed", 0)
     semester       = profile.get("semester", 1)
@@ -1435,33 +2035,13 @@ def _render_whatif_tab():
 
             curr_wi = st.session_state.get("_curr_wi_result")
             if curr_wi:
-                delay = curr_wi.get("new_graduation_delay", 0)
-                delay_color = "#E74C3C" if delay > 0 else "#27AE60"
-                delay_label = (
-                    f"+{delay} semester(s) delay" if delay > 0
-                    else "No graduation delay" if delay == 0
-                    else f"{delay} semester(s) ahead"
-                )
-                grad_ok = curr_wi.get("new_graduation_ok", True)
-                unblocked = curr_wi.get("unblocked", [])
+                unblocked   = curr_wi.get("unblocked", [])
                 new_blocked = curr_wi.get("new_blocked", [])
 
                 st.markdown(f"""
                 <div class="xai-card" style="padding:14px 18px;">
                     <div style="font-weight:700;color:#C4B5FD;font-size:.95rem;margin-bottom:8px;">
                         {curr_wi.get('scenario_name','Scenario')}
-                    </div>
-                    <div style="display:flex;gap:16px;margin-bottom:10px;flex-wrap:wrap;">
-                        <div style="text-align:center;">
-                            <div style="font-size:1.4rem;font-weight:700;color:{delay_color};">{delay_label}</div>
-                            <div style="color:#A78BFA;font-size:.78rem;">Graduation Impact</div>
-                        </div>
-                        <div style="text-align:center;">
-                            <div style="font-size:1.4rem;font-weight:700;color:{'#27AE60' if grad_ok else '#E74C3C'};">
-                                {'On Track' if grad_ok else 'At Risk'}
-                            </div>
-                            <div style="color:#A78BFA;font-size:.78rem;">Graduation Status</div>
-                        </div>
                     </div>
                     <div style="color:#DDD6FE;font-size:.87rem;">{curr_wi.get('curriculum_message','')}</div>
                 </div>
@@ -1520,31 +2100,14 @@ def _render_whatif_tab():
             for sc in g_items:
                 label    = sc.get("label", "Scenario")
                 scenario = sc.get("scenario", {})
-                delay    = scenario.get("new_graduation_delay", 0)
-                grad_ok  = scenario.get("new_graduation_ok", True)
                 unblk    = scenario.get("unblocked", [])
                 blk      = scenario.get("new_blocked", [])
                 msg      = scenario.get("curriculum_message", "")
 
-                delay_txt = (
-                    f"+{delay}sem delay" if delay > 0
-                    else "No delay" if delay == 0
-                    else f"{abs(delay)}sem ahead"
-                )
-                status_color = "#27AE60" if grad_ok else "#E74C3C"
-
-                with st.expander(f"{label}  |  {delay_txt}  |  {'✅ On Track' if grad_ok else '⚠️ At Risk'}"):
+                with st.expander(label):
                     st.markdown(f"""
                     <div class="xai-card" style="padding:10px 16px;">
                         <div style="color:#DDD6FE;font-size:.87rem;">{msg}</div>
-                        <div style="margin-top:8px;display:flex;gap:16px;flex-wrap:wrap;">
-                            <span style="color:{status_color};font-size:.82rem;">
-                                Graduation: {'On Track' if grad_ok else 'At Risk'}
-                            </span>
-                            <span style="color:#A78BFA;font-size:.82rem;">
-                                Delay: {delay_txt}
-                            </span>
-                        </div>
                     </div>
                     """, unsafe_allow_html=True)
                     if unblk:
@@ -1590,10 +2153,6 @@ def _render_advanced_tab():
         if result is None:
             st.info("Complete the Analysis Chat first.")
         else:
-            failed_codes = st.session_state.get("xai_failed_codes", [])
-            profile_adv  = st.session_state.get("xai_profile", {})
-            prog         = profile_adv.get("programme", "CSAI")
-
             # ── Curriculum SHAP-equivalent waterfall chart ────────────────────
             curr_shap_adv = st.session_state.get("xai_curriculum_shap", {})
             if curr_shap_adv:
@@ -1646,27 +2205,6 @@ def _render_advanced_tab():
                         <span style="color:#DDD6FE;font-size:.9rem;">{n}</span>
                     </div>""", unsafe_allow_html=True)
 
-            # ── Blocked courses detail table ──────────────────────────────────
-            if failed_codes:
-                blocked = get_curriculum_engine().get_blocked_courses(failed_codes, prog)
-                if blocked:
-                    st.divider()
-                    st.markdown("##### Prerequisite Chain Impact Table")
-                    rows = []
-                    for b in blocked:
-                        rows.append({
-                            "Failed Course":  b["failed_course"],
-                            "Title":          b["failed_title"],
-                            "Direct Blocks":  len(b["direct_blocked"]),
-                            "Total Blocked":  len(b["all_blocked"]),
-                            "Blocked Credits": b["blocked_credit_hours"],
-                            "Chain Depth":    b["chain_depth"],
-                        })
-                    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-                    st.caption(
-                        "Chain Depth = how many prerequisite levels deep the blockage propagates. "
-                        "High depth means retaking this course unlocks a long chain of future courses."
-                    )
 
     with subtabs[2]:
         st.markdown("**Global SHAP Summary — All Students**")

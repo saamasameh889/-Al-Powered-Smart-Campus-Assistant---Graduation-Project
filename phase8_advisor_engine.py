@@ -1395,11 +1395,17 @@ class IntentRouter:
             if kw in q:
                 return "planning"
 
-        # Graduation-focused
+        # Graduation-focused — only when the student is asking about THEIR OWN
+        # situation.  Factual questions ("how many credits to graduate from
+        # CSAI?", "what are graduation requirements?") must go to standard RAG
+        # so they get a clean, direct answer without the planning machinery
+        # injecting Safe/Balanced/Fast tables.
         for kw in _GRADUATION_KW:
             if kw in q:
-                # If student also gives context → full planning
-                return "graduation" if not any(pk in q for pk in _PLANNING_KW) else "planning"
+                is_personal = bool(_PERSONAL_RE.search(q) or _SELF_RISK_RE.search(q))
+                if is_personal:
+                    return "graduation" if not any(pk in q for pk in _PLANNING_KW) else "planning"
+                return "general"  # factual graduation/requirement question → RAG
 
         # Prerequisite check
         for kw in _PREREQ_KW:
@@ -1679,6 +1685,19 @@ class AdvisorEngine:
                     if sub_tracks:
                         missing.append("track")
 
+        # Transcript-first policy: for Semester 2+, require explicit course
+        # history before generating a plan.  Inferring semesters 1..N-1 from
+        # the official study plan is unreliable when students have failed
+        # courses, taken summers, overloaded, or otherwise deviated.
+        if (
+            "programme"        not in missing
+            and "current_semester" not in missing
+            and profile.semester is not None
+            and profile.semester >= 2
+            and not profile.completed_courses
+        ):
+            missing.append("course_history")
+
         return missing
 
     def _check_programme_ambiguity(self, profile: StudentProfile) -> bool:
@@ -1714,9 +1733,6 @@ class AdvisorEngine:
     ) -> str:
         """
         Return a targeted follow-up question asking only for the minimum needed.
-        The system infers course history from the official plan — students only
-        need to declare their programme, semester, and any deviations (failed
-        courses, courses they haven't taken yet).
         """
         lines: list[str] = []
         q_num = 1
@@ -1764,12 +1780,23 @@ class AdvisorEngine:
                     )
             q_num += 1
 
-        if lines:
-            lines.insert(0, "To build an accurate semester plan, I just need one more detail:\n")
+        if "course_history" in missing:
             lines.append(
-                "\n*I load your curriculum automatically from the official Zewail study plan — "
-                "you only need to mention courses you **failed** or haven't completed yet.*"
+                f"**{q_num}. Please share your course history.**\n"
+                "   List the courses you have completed, any you are currently enrolled in, "
+                "and any you have failed.\n\n"
+                "   Example:\n"
+                "   *Completed: CSAI 101, MATH 101, PHYS 101, CSAI 201, MATH 202*\n"
+                "   *Currently enrolled: CSAI 301, MATH 301*\n"
+                "   *Failed: CSAI 201 (plan to retake)*\n\n"
+                "   A plan based on your actual transcript will be far more accurate than "
+                "one built from the official sequence alone — students take summers, "
+                "repeat courses, and register early or late all the time."
             )
+            q_num += 1
+
+        if lines:
+            lines.insert(0, "To build an accurate semester plan, I need a few details:\n")
 
         return "\n\n".join(lines)
 
@@ -1897,6 +1924,23 @@ class AdvisorEngine:
 
     # ── Full advisory response ─────────────────────────────────────────────────
 
+    @staticmethod
+    def _detect_query_program(question: str) -> tuple[str, str]:
+        """
+        Return (major, school) when a known programme keyword is explicitly
+        mentioned in the question text.  Returns ('', '') when none is found.
+
+        Used to prevent session-state contamination: if a student previously
+        asked about BUS and then asks 'how many credits for CSAI?', the
+        current-question program (CSAI) must override the cached profile
+        school (BUS) for retrieval and context-building purposes.
+        """
+        q_upper = question.upper()
+        for k, (major, school) in _MAJOR_MAP.items():
+            if re.search(r'\b' + re.escape(k) + r'\b', q_upper):
+                return major, school
+        return "", ""
+
     def _full_advisory(
         self,
         question: str,
@@ -1904,6 +1948,18 @@ class AdvisorEngine:
         intent:   str,
         history:  list[dict],
     ) -> tuple[str, list]:
+
+        # 0. Query-program override — prevents cross-session contamination.
+        # If the current question names a programme explicitly (e.g. "CSAI credits")
+        # but the stored profile belongs to a different school (e.g. BUS from a
+        # prior turn), shadow the local `profile` with a corrected copy so that
+        # retrieval, eligibility filtering, and the LLM prompt all see the right
+        # school.  The persistent session profile is NOT modified here.
+        _q_major, _q_school = self._detect_query_program(question)
+        if _q_school and _q_school.upper() != (profile.school or "").upper():
+            profile = StudentProfile.from_dict(profile.to_dict())
+            profile.school = _q_school
+            profile.major  = _q_major or _q_school
 
         # 1. Build retrieval query enriched with profile context
         parts = [question]
@@ -1923,7 +1979,7 @@ class AdvisorEngine:
         plan_resolved:      Optional[tuple[str, str]]                   = None
         s_key = p_key = track_key = ""
         presumed_completed: list[str]                                   = []
-        cur_seq = profile.semester or 0
+        cur_seq:            int                                         = 0
 
         if self._study_plan.available and profile.semester:
             plan_resolved = self._study_plan.resolve_prog(profile.school, profile.major)
@@ -1954,8 +2010,13 @@ class AdvisorEngine:
                 }
 
                 # ── Transcript Inference Rule ──────────────────────────────────
-                # Standard case: assume semesters 1..N-1 completed.
-                if cur_seq > 1:
+                # Only infer prior semesters from the official plan when the
+                # student has provided NO explicit completed course list.
+                # If they gave us their actual history (profile.completed_courses
+                # is non-empty), trust only that — blending inference with real
+                # data produces incorrect eligibility when students have deviated
+                # from the standard sequence (failed, summer, overload, etc.).
+                if cur_seq > 1 and not profile.completed_courses:
                     presumed_completed = self._study_plan.infer_presumed_completed(
                         profile.school or "", profile.major or "",
                         cur_seq, track_key,
