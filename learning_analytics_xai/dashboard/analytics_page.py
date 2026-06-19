@@ -1025,6 +1025,7 @@ def _render_chat_tab():
                 packed_state = f"{_secrets.token_urlsafe(16)}|{code_verifier}"
                 auth_url, _ = flow.authorization_url(
                     prompt="select_account",
+                    hd="zewailcity.edu.eg",
                     access_type="online",
                     state=packed_state,
                     code_challenge=code_challenge,
