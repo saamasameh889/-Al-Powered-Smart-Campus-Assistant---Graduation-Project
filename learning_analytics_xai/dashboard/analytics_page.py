@@ -1030,11 +1030,10 @@ def _render_chat_tab():
                     code_challenge=code_challenge,
                     code_challenge_method="S256",
                 )
-                st.markdown(
-                    f'<meta http-equiv="refresh" content="0; url={auth_url}">',
-                    unsafe_allow_html=True,
-                )
-                st.stop()
+                st.code(auth_url, language=None)
+                st.write("**redirect_uri being used:**", redirect_uri)
+                st.write("**client_id prefix:**", os.getenv("GOOGLE_CLIENT_ID", "NOT SET")[:30])
+                st.link_button("Open Google Sign-in →", auth_url)
             else:
                 st.error("Failed to build OAuth flow. Check GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in .env.")
 
