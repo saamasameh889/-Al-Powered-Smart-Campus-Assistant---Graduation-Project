@@ -393,47 +393,9 @@ def render_clustering_page(openai_client=None) -> None:
         if clusterer is not None:
             st.session_state["_clusterer_obj"] = clusterer
 
-    # ── Train / retrain button ─────────────────────────────────────────────────
-    col_btn, col_info = st.columns([1, 3])
-    with col_btn:
-        train_btn = st.button(
-            "🔄  Train Clustering Model",
-            type="primary" if clusterer is None else "secondary",
-            use_container_width=True,
-        )
-    with col_info:
-        if clusterer is None:
-            st.info("No trained model found. Click **Train** to cluster all students.")
-        else:
-            st.success(
-                f"Model loaded — {clusterer.n_clusters} archetypes  "
-                f"·  silhouette {clusterer.silhouette:.3f}"
-            )
-
-    if train_btn:
-        with st.spinner("Training clustering model… (usually < 30 s)"):
-            try:
-                clusterer = _train_clusterer(openai_client)
-                st.session_state["_clusterer_obj"] = clusterer
-                # Invalidate cached version
-                _get_clusterer_cached.clear()
-                st.success(
-                    f"✅ Trained — {clusterer.n_clusters} archetypes discovered  "
-                    f"·  silhouette={clusterer.silhouette:.3f}"
-                )
-            except Exception as exc:
-                st.error(f"Training failed: {exc}")
-                return
-
     if clusterer is None:
-        return   # waiting for first train
-
-    # ── Quality metrics row ────────────────────────────────────────────────────
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Archetypes (K)",  clusterer.n_clusters)
-    m2.metric("Silhouette",      f"{clusterer.silhouette:.3f}")
-    m3.metric("Calinski-Harabasz", f"{clusterer.calinski_harabasz:.0f}")
-    m4.metric("Davies-Bouldin",  f"{clusterer.davies_bouldin:.3f}")
+        st.info("Clustering model not found. Please ensure the model file exists.")
+        return
 
     st.divider()
 

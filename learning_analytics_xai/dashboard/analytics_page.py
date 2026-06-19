@@ -603,7 +603,6 @@ def render_learning_analytics_page():
         "AI Analysis Chat",
         "Academic Dashboard",
         "Recommendations",
-        "What-If Simulator",
         "Advanced Analytics",
     ]
     tabs = st.tabs(tab_labels)
@@ -618,9 +617,6 @@ def render_learning_analytics_page():
         _render_recommendations_tab()
 
     with tabs[3]:
-        _render_whatif_tab()
-
-    with tabs[4]:
         _render_advanced_tab()
 
 

@@ -675,7 +675,7 @@ def render_header() -> None:
         <div class="zc-logo">🎓</div>
         <div class="zc-htxt">
             <h1>Zewail City Campus Assistant</h1>
-            <p>Academic Advisor AI &nbsp;·&nbsp; Powered by official Zewail City documents &amp; GPT-4o</p>
+            <p>Academic Advisor AI</p>
         </div>
         <div class="zc-badge">✦ &nbsp;Academic Advisor AI</div>
     </div>
@@ -1310,10 +1310,9 @@ def main() -> None:
             rag_ok = False
             err    = str(exc)
 
-    tab_chat, tab_xai, tab_eval, tab_clust, tab_fcast, tab_career = st.tabs([
+    tab_chat, tab_xai, tab_clust, tab_fcast, tab_career = st.tabs([
         "💬  Chat",
         "🧠  Learning Analytics & XAI",
-        "🔬  RAG Evaluation",
         "🧩  Student Archetypes",
         "📈  GPA Forecast",
         "💼  Career Advisor",
@@ -1418,13 +1417,6 @@ def main() -> None:
                         "elapsed":    0,
                         "followups":  [],
                     })
-
-    with tab_eval:
-        from rag_evaluator import render_evaluation_tab
-        if rag_ok:
-            render_evaluation_tab(assistant)
-        else:
-            st.warning("Load the RAG pipeline first (set OPENAI_API_KEY and ensure the vector DB exists).")
 
     with tab_clust:
         if not _CLUST_IMPORT_OK:

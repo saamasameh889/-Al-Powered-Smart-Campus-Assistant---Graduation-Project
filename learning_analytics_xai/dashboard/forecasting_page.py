@@ -358,46 +358,8 @@ def render_forecasting_page() -> None:
             if forecaster is not None:
                 st.session_state["_forecaster_obj"] = forecaster
 
-        col_btn, col_info = st.columns([1, 3])
-        with col_btn:
-            train_btn = st.button(
-                "🔄  Train Forecast Model",
-                type="primary" if forecaster is None else "secondary",
-                use_container_width=True,
-            )
-        with col_info:
-            if forecaster is None:
-                st.info(
-                    "No trained model found. Click **Train** to fit the LSTM "
-                    "(generates ~75k sequences from synthetic data — ~2 min)."
-                )
-            else:
-                best_epoch = (
-                    int(np.argmin(forecaster.val_losses)) + 1
-                    if forecaster.val_losses else "?"
-                )
-                best_val = (
-                    f"{min(forecaster.val_losses):.4f}"
-                    if forecaster.val_losses else "?"
-                )
-                st.success(
-                    f"LSTM loaded — best epoch {best_epoch}  "
-                    f"·  best val loss {best_val}"
-                )
-
-        if train_btn:
-            prog_bar   = st.progress(0)
-            status_txt = st.empty()
-            try:
-                forecaster = _train_forecaster(prog_bar, status_txt)
-                st.session_state["_forecaster_obj"] = forecaster
-                _load_forecaster_cached.clear()
-                best_val = f"{min(forecaster.val_losses):.4f}" if forecaster.val_losses else "?"
-                st.success(f"✅ Training complete — best val loss {best_val}")
-            except Exception as exc:
-                st.error(f"Training failed: {exc}")
-                import traceback
-                st.code(traceback.format_exc())
+        if forecaster is None:
+            st.info("Forecast model not found. Please ensure the model file exists.")
 
         if forecaster is not None:
             # ── Archetype context (from Product D, if available) ──────────────
