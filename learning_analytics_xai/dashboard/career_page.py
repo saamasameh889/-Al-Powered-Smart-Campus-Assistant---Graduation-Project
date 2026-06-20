@@ -200,7 +200,7 @@ def render_career_page(openai_client=None) -> None:
                        "Commits/Week (90d)", act_c), m4)
     _html(_metric_card("🎯", f"{a['alignment']['score']}%",
                        f"{programme} Alignment", aln_c), m5)
-    _html(_metric_card("🏆", f"{a['avg_quality']:.1f}/4", "Repo Quality", "#10B981"), m6)
+    _html(_metric_card("🏆", f"{a['avg_quality']:.1f}/5", "Repo Quality", "#10B981"), m6)
 
     # ═══════════════════════════════════════════════════════════════════════
     #  SECTION 3 — LANGUAGE CHART + TOP REPOS

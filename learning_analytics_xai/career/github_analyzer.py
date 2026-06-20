@@ -213,6 +213,25 @@ class GitHubAnalyzer:
         except Exception:
             return {}
 
+    def _check_repo_extras(self, owner: str, repo: str) -> dict:
+        """Check for CI workflows and CONTRIBUTING.md (2 API calls per repo)."""
+        has_ci, has_contributing = False, False
+        try:
+            wf = self._get(f"{self.BASE}/repos/{owner}/{repo}/contents/.github/workflows")
+            has_ci = isinstance(wf, list) and len(wf) > 0
+        except Exception:
+            pass
+        try:
+            self._get(f"{self.BASE}/repos/{owner}/{repo}/contents/CONTRIBUTING.md")
+            has_contributing = True
+        except Exception:
+            try:
+                self._get(f"{self.BASE}/repos/{owner}/{repo}/contents/CONTRIBUTING")
+                has_contributing = True
+            except Exception:
+                pass
+        return {"has_ci": has_ci, "has_contributing": has_contributing}
+
     def _has_profile_readme(self, username: str) -> bool:
         try:
             self._get(f"{self.BASE}/repos/{username}/{username}")
@@ -237,26 +256,45 @@ class GitHubAnalyzer:
     @staticmethod
     def _quality_score(r: dict) -> float:
         """
-        0-5 score reflecting both impact and metadata quality.
-          +1  Impact    : stars >= 5 (community validated the repo)
-          +1  Substance : original repo with real content OR fork with stars (contributed)
-          +1  Described : has a description
-          +1  Tagged    : has topics
-          +1  Licensed  : has a license
-        Stars dominate for high-impact profiles — a repo with 50+ stars is
-        clearly valuable regardless of missing metadata.
+        0-5 repo health score across 4 evaluation pillars:
+          Pillar 1 — Documentation (max 2):
+            +1  has a meaningful description
+            +1  has a license
+          Pillar 2 — Community discoverability (max 1):
+            +1  has topics/tags
+          Pillar 3 — Maintenance signal (max 1):
+            +1  pushed within last 180 days AND not archived
+          Pillar 4 — Impact/validation (max 1):
+            +1  stars >= 3 OR received forks >= 1 (others found it useful)
+        Forks are NOT penalised — a highly-starred fork shows active contribution.
         """
-        stars   = r.get("stargazers_count", 0)
-        is_fork = r.get("fork", False)
-        size    = r.get("size", 0)
+        stars    = r.get("stargazers_count", 0)
+        forks_rx = r.get("forks_count", 0)
+        archived = r.get("archived", False)
+        pushed   = r.get("pushed_at") or ""
 
-        impact    = 1 if stars >= 5 else 0
-        substance = 1 if (not is_fork and size > 0) or stars >= 5 else 0
+        # Pillar 1 — Documentation
         described = int(bool((r.get("description") or "").strip()))
-        tagged    = int(bool(r.get("topics")))
         licensed  = int(bool(r.get("license")))
 
-        return impact + substance + described + tagged + licensed
+        # Pillar 2 — Community
+        tagged = int(bool(r.get("topics")))
+
+        # Pillar 3 — Maintenance (active within 6 months)
+        active = 0
+        if not archived and pushed:
+            try:
+                from datetime import timezone as _tz
+                age_days = (datetime.now(tz=_tz.utc) -
+                            datetime.fromisoformat(pushed.replace("Z", "+00:00"))).days
+                active = 1 if age_days <= 180 else 0
+            except Exception:
+                pass
+
+        # Pillar 4 — Impact
+        impact = 1 if (stars >= 3 or forks_rx >= 1) else 0
+
+        return described + licensed + tagged + active + impact
 
     @staticmethod
     def _classify_domain(name: str, desc: str, topics: list[str]) -> list[str]:
@@ -364,55 +402,124 @@ class GitHubAnalyzer:
                      all_languages: set[str], lang_pct: dict[str, float],
                      alignment: dict, profile: dict,
                      has_profile_readme: bool, programme: str,
+                     repo_extras: list[dict] | None = None,
                      is_org: bool = False) -> list[str]:
+        """
+        Gap detection organised across 4 evaluation pillars:
+          1. Documentation & Community Standards
+          2. Maintenance & Activity Pulse
+          3. Code Quality & Test Architecture
+          4. Stack Alignment
+        """
         gaps = []
         n = max(len(repos), 1)
+        extras = repo_extras or []
 
-        # Repo metadata quality — only flag low-starred repos (high-starred repos are
-        # clearly valuable even without metadata)
+        # ── Pillar 1: Documentation & Community Standards ─────────────────────
+        # Only flag repos with low stars — high-starred repos are clearly valuable
         no_desc = [r["name"] for r in repos
                    if not (r.get("description") or "").strip()
                    and r.get("stargazers_count", 0) < 5]
-        if len(no_desc) > n * 0.15:
-            gaps.append(f"{len(no_desc)}/{n} repos have no description (e.g. {', '.join(no_desc[:3])})")
+        if len(no_desc) > n * 0.20:
+            gaps.append(
+                f"[Documentation] {len(no_desc)}/{n} repos have no description "
+                f"(e.g. {', '.join(no_desc[:3])}) — a clear purpose statement is the "
+                f"first thing recruiters and contributors read"
+            )
+
+        no_license = [r["name"] for r in repos if not r.get("license")]
+        if len(no_license) > n * 0.6:
+            gaps.append(
+                f"[Documentation] {len(no_license)}/{n} repos have no license — "
+                f"unlicensed code cannot legally be used, forked, or contributed to; "
+                f"MIT or Apache 2.0 take 30 seconds to add"
+            )
 
         no_topics = [r["name"] for r in repos
                      if not r.get("topics")
                      and r.get("stargazers_count", 0) < 10]
         if len(no_topics) > n * 0.5:
-            gaps.append(f"{len(no_topics)}/{n} repos have no topics/tags — topics improve SEO and recruiter discovery")
-
-        no_license = [r["name"] for r in repos if not r.get("license")]
-        if len(no_license) > n * 0.6:
-            gaps.append(f"{len(no_license)} repos missing a license — unlicensed code cannot legally be used or contributed to")
-
-        # Activity
-        if activity["days_since_push"] > 60:
-            gaps.append(f"Last push was {activity['days_since_push']} days ago — profile appears inactive to recruiters")
-        if activity["commits_per_week"] < 1.0:
-            gaps.append(f"Low commit frequency ({activity['commits_per_week']:.1f}/week) — daily contributions signal sustained learning")
-        if activity["collab_events"] == 0:
-            gaps.append("No collaborative activity detected — open-source contributions (PRs, reviews) are a top hiring signal")
-
-        # Stack alignment — only flag if core coverage is low
-        if alignment["core_coverage"] < 40 and alignment["missing"]:
             gaps.append(
-                f"Missing core {programme} languages: {', '.join(alignment['missing'][:4])} "
-                f"— these appear in most {programme} job descriptions"
+                f"[Community] {len(no_topics)}/{n} repos have no topics/tags — "
+                f"topics are the primary way GitHub surfaces repos in search and "
+                f"improve recruiter discovery significantly"
             )
 
-        # Personal profile quality (skip for orgs)
+        # CONTRIBUTING.md (checked for top repos if extras available)
+        has_contributing = any(e.get("has_contributing") for e in extras)
+        if extras and not has_contributing:
+            gaps.append(
+                "[Community] No CONTRIBUTING.md found in top repos — contributing "
+                "guidelines signal an open, collaborative project and attract PRs"
+            )
+
         if not is_org:
             if not has_profile_readme:
-                gaps.append("No profile README — a pinned README is the single highest-ROI portfolio improvement")
+                gaps.append(
+                    "[Community] No profile README — a pinned profile README "
+                    "(username/username repo) is the single highest-ROI portfolio "
+                    "improvement: it's the first thing any visitor sees"
+                )
             if not profile.get("bio"):
-                gaps.append("Empty GitHub bio — a 1-2 line bio with your stack and interests improves recruiter click-through")
+                gaps.append(
+                    "[Community] Empty GitHub bio — a 1-2 line bio with your stack "
+                    "and interests improves recruiter click-through rate"
+                )
 
-        # Fork-heavy profile — only flag if forks dominate AND the originals have low impact
+        # ── Pillar 2: Maintenance & Activity Pulse ────────────────────────────
+        if activity["days_since_push"] > 60:
+            gaps.append(
+                f"[Maintenance] Last push was {activity['days_since_push']} days ago — "
+                f"a stale profile signals abandoned projects to recruiters; "
+                f"even small documentation updates show the project is alive"
+            )
+        if activity["commits_per_week"] < 1.0:
+            gaps.append(
+                f"[Maintenance] Low commit frequency ({activity['commits_per_week']:.1f}/week "
+                f"over last 90 days) — consistent daily contributions signal sustained "
+                f"learning and discipline to hiring managers"
+            )
+        if activity["collab_events"] == 0:
+            gaps.append(
+                "[Maintenance] No collaborative activity detected (PRs, reviews, issues) — "
+                "open-source contributions to other repos are a top hiring signal; "
+                "even one accepted PR to a popular project stands out"
+            )
+
+        # Archived repos
+        archived = [r["name"] for r in repos if r.get("archived")]
+        if len(archived) > n * 0.3:
+            gaps.append(
+                f"[Maintenance] {len(archived)}/{n} repos are archived — "
+                f"consider either reviving or removing abandoned projects"
+            )
+
+        # Fork-heavy — only flag if originals have low impact
         fork_count = sum(1 for r in repos if r.get("fork"))
         original_stars = sum(r.get("stargazers_count", 0) for r in repos if not r.get("fork"))
-        if fork_count > n * 0.6 and original_stars < 50:
-            gaps.append(f"{fork_count}/{n} repos are forks — original projects demonstrate initiative, not just consumption")
+        if fork_count > n * 0.6 and original_stars < 100:
+            gaps.append(
+                f"[Maintenance] {fork_count}/{n} repos are forks with low original-project "
+                f"impact ({original_stars} total stars on originals) — building and "
+                f"shipping original projects demonstrates initiative beyond consumption"
+            )
+
+        # ── Pillar 3: Code Quality & Test Architecture ────────────────────────
+        has_ci = any(e.get("has_ci") for e in extras)
+        if extras and not has_ci:
+            gaps.append(
+                "[Code Quality] No CI/CD pipeline detected (GitHub Actions) in top repos — "
+                "automated build/test pipelines prove code quality and are expected "
+                "in any professional engineering role"
+            )
+
+        # ── Pillar 4: Stack Alignment ─────────────────────────────────────────
+        if alignment["core_coverage"] < 40 and alignment["missing"]:
+            gaps.append(
+                f"[Stack] Missing core {programme} languages: "
+                f"{', '.join(alignment['missing'][:4])} — "
+                f"these appear in the majority of {programme} job descriptions"
+            )
 
         return gaps
 
@@ -440,15 +547,24 @@ class GitHubAnalyzer:
         scored = sorted(repos_raw, key=lambda r: self._repo_score(r, now_ts), reverse=True)
         top6   = scored[:6]
 
-        # Parallel language breakdown for top 6
+        # Parallel: language breakdown for top 6 + CI/contributing check for top 3
         lang_maps: list[dict[str, int]] = [{} for _ in top6]
-        with ThreadPoolExecutor(max_workers=6) as ex:
-            fut_map = {
+        repo_extras: list[dict] = []
+        with ThreadPoolExecutor(max_workers=9) as ex:
+            lang_futs = {
                 ex.submit(self.fetch_languages, username, r["name"]): i
                 for i, r in enumerate(top6)
             }
-            for fut in as_completed(fut_map):
-                lang_maps[fut_map[fut]] = fut.result()
+            extra_futs = {
+                ex.submit(self._check_repo_extras, username, r["name"]): i
+                for i, r in enumerate(top6[:3])
+            }
+            for fut in as_completed(lang_futs):
+                lang_maps[lang_futs[fut]] = fut.result()
+            repo_extras = [None] * 3
+            for fut in as_completed(extra_futs):
+                repo_extras[extra_futs[fut]] = fut.result()
+            repo_extras = [e for e in repo_extras if e is not None]
 
         # Detailed language % (top 6 repos, byte-level)
         lang_pct = self._language_breakdown(lang_maps)
@@ -520,13 +636,12 @@ class GitHubAnalyzer:
         total_stars  = sum(r.get("stargazers_count", 0) for r in repos_raw)
         total_forks  = sum(r.get("forks_count",       0) for r in repos_raw)
         total_issues = sum(r.get("open_issues_count",  0) for r in repos_raw)
-        avg_quality  = sum(self._quality_score(r) for r in top_repos) / max(len(top_repos), 1)
-        # Normalise to 0-4 for display continuity (scale was 0-5 after adding impact point)
-        avg_quality  = round(avg_quality * 4 / 5, 2)
+        avg_quality  = round(sum(self._quality_score(r) for r in top_repos) / max(len(top_repos), 1), 2)
 
         gaps = self._detect_gaps(
             repos_raw, activity, all_languages, lang_pct, alignment,
-            profile, has_profile_readme, programme, is_org=is_org,
+            profile, has_profile_readme, programme,
+            repo_extras=repo_extras, is_org=is_org,
         )
 
         joined_year = profile.get("created_at", "")[:4] or "?"
@@ -613,7 +728,7 @@ PORTFOLIO METRICS (all {a["n_repos"]} repos scanned):
   🍴 Total forks      : {a["total_forks"]:,}   (how many times others forked YOUR repos)
   🐛 Open issues      : {a["total_open_issues"]:,}
   📊 Domain coverage  : {", ".join(a["top_domains"])}
-  🔧 Repo quality avg : {a["avg_quality"]:.1f}/4  (impact/stars + substance + description + topics + license)
+  🔧 Repo quality avg : {a["avg_quality"]:.1f}/5  (documentation + license + topics + maintenance + impact)
   🎭 Presentation     : {a["presentation_score"]}/3  (profile README, bio, custom avatar)
 
 LANGUAGE DISTRIBUTION:
