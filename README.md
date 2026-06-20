@@ -387,6 +387,14 @@ Advisor: CSAI 302 requires CSAI 201 and MATH 202 to be completed first.
 
 ---
 
+## Project Assets (Google Drive)
+
+All project assets — poster, presentation slides, demo video, and supplementary materials — are available in the shared Google Drive folder:
+
+**[📁 Google Drive — Project Assets](https://drive.google.com/drive/folders/1d9NNInZYqlELjVzHjxzhLBnWgu0IFnoE?usp=sharing)**
+
+---
+
 ## Screenshots / Demo
 
 Screenshots are in the [`screenshots/`](screenshots/) folder.
