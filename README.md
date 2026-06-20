@@ -23,7 +23,7 @@
 
 **School:** School of Computational Sciences and Artificial Intelligence (CSAI)  
 **Institution:** Zewail City of Science and Technology  
-**Submission Date:** June 2026
+**Submission Date:** 20 June 2026
 
 ---
 
