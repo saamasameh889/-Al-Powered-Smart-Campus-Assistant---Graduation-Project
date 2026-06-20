@@ -14,12 +14,12 @@
 
 | Name | ID | Program |
 |------|----|---------|
-| Student 1 | ID | Program |
-| Student 2 | ID | Program |
-| Student 3 | ID | Program |
-| Student 4 | ID | Program |
+| Omar Mohamed | 202202184 | DSAI |
+| Ahmed Mongi | 202201897 | DSAI |
+| Joumana Mohamed | 202202100 | DSAI |
+| Sama Samed | 202202118 | DSAI |
 
-**Supervisor:** Dr. / Prof. ______________________
+**Supervisor:** Dr. / Prof. Mohamed Fakhry Eldin Ghalwash
 
 **School:** School of Computational Sciences and Artificial Intelligence (CSAI)  
 **Institution:** Zewail City of Science and Technology  
